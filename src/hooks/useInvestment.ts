@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import type { InvestmentData, XIRRResult, CashFlowEntry } from '../types/investment';
 import { calculateInvestmentReturn } from '../utils/xirr';
+import { useExchangeRates } from './useExchangeRates';
 import { v4 as uuidv4 } from 'uuid';
 
 // All values stored in IDR internally - NEVER changes
@@ -32,14 +33,6 @@ const DEFAULT_INVESTMENT: InvestmentData = {
   ]
 };
 
-// Exchange rates: how many IDR per 1 unit of foreign currency
-const EXCHANGE_RATES: Record<string, number> = {
-  IDR: 1,
-  USD: 16000,
-  AUD: 10300,
-  EUR: 17000,
-};
-
 const CURRENCY_SYMBOLS: Record<string, string> = {
   IDR: 'Rp',
   USD: '$',
@@ -50,8 +43,18 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 export function useInvestment() {
   const [data, setData] = useState<InvestmentData>(DEFAULT_INVESTMENT);
   
+  // Live exchange rates
+  const { 
+    getRate, 
+    loading: ratesLoading, 
+    error: ratesError,
+    source: ratesSource,
+    lastUpdatedFormatted: ratesLastUpdated,
+    refreshRates 
+  } = useExchangeRates();
+  
   const currency = data.property.currency;
-  const rate = EXCHANGE_RATES[currency] || 1;
+  const rate = getRate(currency);
   const symbol = CURRENCY_SYMBOLS[currency] || 'Rp';
   
   // XIRR always calculated from IDR values
@@ -174,6 +177,12 @@ export function useInvestment() {
     currency,
     symbol,
     rate,
+    // Exchange rate info
+    ratesLoading,
+    ratesError,
+    ratesSource,
+    ratesLastUpdated,
+    refreshRates,
     // Formatting
     formatDisplay,
     formatAbbrev,

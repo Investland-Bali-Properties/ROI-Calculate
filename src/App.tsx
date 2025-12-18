@@ -15,6 +15,11 @@ function App() {
     currency,
     symbol,
     rate,
+    ratesLoading,
+    ratesError,
+    ratesSource,
+    ratesLastUpdated,
+    refreshRates,
     formatDisplay,
     formatAbbrev,
     idrToDisplay,
@@ -46,6 +51,31 @@ function App() {
             <p className="text-text-secondary text-lg mt-2">
               Enter the financial details of your Bali villa project to forecast returns and calculate XIRR.
             </p>
+            
+            {/* Exchange Rate Indicator */}
+            {currency !== 'IDR' && (
+              <div className="mt-3 flex items-center gap-2 text-sm">
+                <span className="text-text-secondary">
+                  Exchange Rate: 1 {currency} = {rate.toLocaleString()} IDR
+                </span>
+                {ratesLoading ? (
+                  <span className="text-yellow-400 text-xs">(loading...)</span>
+                ) : ratesError ? (
+                  <span className="text-red-400 text-xs" title={ratesError}>⚠️ Using fallback</span>
+                ) : (
+                  <span className="text-green-400 text-xs" title={`Source: ${ratesSource}`}>
+                    ✓ Updated {ratesLastUpdated}
+                  </span>
+                )}
+                <button 
+                  onClick={refreshRates}
+                  className="text-accent hover:text-white text-xs underline ml-2"
+                  disabled={ratesLoading}
+                >
+                  Refresh
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Main Grid */}
