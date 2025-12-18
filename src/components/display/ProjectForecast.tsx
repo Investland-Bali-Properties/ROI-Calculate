@@ -5,9 +5,11 @@ interface Props {
   location: string;
   currency: string;
   formatAbbrev: (idr: number) => string;
+  onCalculate?: () => void;
+  onExportPDF?: () => void;
 }
 
-export function ProjectForecast({ result, location, currency, formatAbbrev }: Props) {
+export function ProjectForecast({ result, location, currency, formatAbbrev, onCalculate, onExportPDF }: Props) {
   const xirrPercent = (result.rate * 100).toFixed(1);
   const isPositive = result.rate >= 0;
 
@@ -55,11 +57,17 @@ export function ProjectForecast({ result, location, currency, formatAbbrev }: Pr
 
         {/* Buttons */}
         <div className="mt-6 space-y-3">
-          <button className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-3 text-[#112217] font-bold hover:bg-[#10d652] transition-colors">
+          <button
+            onClick={onCalculate}
+            className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-3 text-[#112217] font-bold hover:bg-[#10d652] transition-colors"
+          >
             <span className="material-symbols-outlined">calculate</span>
             Calculate Final XIRR
           </button>
-          <button className="w-full flex items-center justify-center gap-2 rounded-lg border border-border-dark py-3 text-text-secondary text-sm hover:text-white transition-colors">
+          <button
+            onClick={onExportPDF}
+            className="w-full flex items-center justify-center gap-2 rounded-lg border border-border-dark py-3 text-text-secondary text-sm hover:text-white hover:border-primary transition-colors"
+          >
             <span className="material-symbols-outlined">picture_as_pdf</span>
             Export PDF Report
           </button>

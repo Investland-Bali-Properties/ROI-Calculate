@@ -9,6 +9,7 @@ import {
   ProjectForecast
 } from './components';
 import { Toast } from './components/ui/Toast';
+import { generatePDFReport } from './utils/pdfExport';
 
 const DRAFT_STORAGE_KEY = 'baliinvest_draft';
 
@@ -54,6 +55,28 @@ function App() {
       setToast({ message: 'Failed to save draft', type: 'error' });
     }
   }, [data]);
+
+  const handleCalculate = useCallback(() => {
+    setToast({ message: 'XIRR calculated successfully!', type: 'success' });
+  }, []);
+
+  const handleExportPDF = useCallback(() => {
+    try {
+      generatePDFReport({
+        data,
+        result,
+        currency,
+        symbol,
+        formatDisplay,
+        formatAbbrev,
+        rate,
+      });
+      setToast({ message: 'PDF exported successfully!', type: 'success' });
+    } catch (error) {
+      console.error('PDF export error:', error);
+      setToast({ message: 'Failed to export PDF', type: 'error' });
+    }
+  }, [data, result, currency, symbol, formatDisplay, formatAbbrev, rate]);
 
   const displayPrice = idrToDisplay(data.property.totalPrice);
   const displayExitPrice = idrToDisplay(data.exit.projectedSalesPrice);
@@ -150,6 +173,8 @@ function App() {
                 location={data.property.location}
                 currency={currency}
                 formatAbbrev={formatAbbrev}
+                onCalculate={handleCalculate}
+                onExportPDF={handleExportPDF}
               />
             </div>
           </div>
