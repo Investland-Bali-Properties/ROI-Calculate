@@ -10,13 +10,16 @@ interface Props {
   onUpdate: (id: string, updates: Partial<CashFlowEntry>) => void;
 }
 
-export function CashFlows({ entries, symbol, formatDisplay, onAdd, onRemove, onUpdate }: Props) {
+export function CashFlows({ entries, symbol, formatDisplay, onAdd, onRemove, onUpdate: _onUpdate }: Props) {
   const [newEntry, setNewEntry] = useState({
     date: '',
     description: '',
     type: 'outflow' as 'inflow' | 'outflow',
     amount: 0
   });
+
+  // Reserved for future inline editing
+  void _onUpdate;
 
   const parseInput = (value: string): number => {
     const digits = value.replace(/\D/g, '');
