@@ -6,7 +6,7 @@ interface ExchangeRateData {
   source: 'api' | 'cache' | 'fallback';
 }
 
-// Fallback rates in case API fails
+// Fallback rates in case API fails (IDR per 1 unit of currency)
 const FALLBACK_RATES: Record<string, number> = {
   IDR: 1,
   USD: 16000,
@@ -17,8 +17,8 @@ const FALLBACK_RATES: Record<string, number> = {
 const CACHE_KEY = 'baliinvest_exchange_rates';
 const CACHE_DURATION_MS = 12 * 60 * 60 * 1000; // 12 hours (refresh twice daily)
 
-// Free API - no key needed, 1500 requests/month
-const API_URL = 'https://api.exchangerate-api.com/v4/latest/IDR';
+// Free API - no key needed, uses USD as base
+const API_URL = 'https://api.exchangerate-api.com/v4/latest/USD';
 
 export function useExchangeRates() {
   const [rateData, setRateData] = useState<ExchangeRateData>({
@@ -65,14 +65,19 @@ export function useExchangeRates() {
       
       const data = await response.json();
       
-      // API returns rates FROM IDR, we need TO IDR
-      // e.g., if 1 IDR = 0.0000625 USD, then 1 USD = 16000 IDR
+      // API returns rates FROM USD
+      // e.g., USD:1, IDR:16669, AUD:1.51, EUR:0.852
+      // We need: how many IDR per 1 unit of each currency
+      const idrPerUsd = data.rates.IDR || 16000;
+      
       const rates: Record<string, number> = {
         IDR: 1,
-        USD: data.rates.USD ? Math.round(1 / data.rates.USD) : FALLBACK_RATES.USD,
-        AUD: data.rates.AUD ? Math.round(1 / data.rates.AUD) : FALLBACK_RATES.AUD,
-        EUR: data.rates.EUR ? Math.round(1 / data.rates.EUR) : FALLBACK_RATES.EUR,
+        USD: Math.round(idrPerUsd), // 1 USD = ~16669 IDR
+        AUD: Math.round(idrPerUsd / data.rates.AUD), // 1 AUD = IDR/AUD rate
+        EUR: Math.round(idrPerUsd / data.rates.EUR), // 1 EUR = IDR/EUR rate
       };
+      
+      console.log('Fetched exchange rates:', rates);
       
       return {
         rates,
