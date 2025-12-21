@@ -157,8 +157,14 @@ export function useInvestment() {
   ) => {
     setData(prev => {
       const newSalesPrice = prev.property.totalPrice * (1 + defaults.appreciation / 100);
+
       // Calculate sale date from handover date + hold period
-      const handoverDate = new Date(prev.property.handoverDate);
+      // Use fallback date if handover date is not set
+      const handoverDateStr = prev.property.handoverDate;
+      const handoverDate = handoverDateStr
+        ? new Date(handoverDateStr)
+        : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // Default: 1 year from now
+
       const saleDate = new Date(handoverDate);
       saleDate.setFullYear(saleDate.getFullYear() + Math.floor(defaults.holdYears));
       saleDate.setMonth(saleDate.getMonth() + Math.round((defaults.holdYears % 1) * 12));
