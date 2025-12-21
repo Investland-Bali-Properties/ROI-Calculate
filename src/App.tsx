@@ -45,6 +45,7 @@ function App() {
 
   const [isSaving, setIsSaving] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const handleSaveDraft = useCallback(() => {
     setIsSaving(true);
@@ -62,12 +63,19 @@ function App() {
   }, [data]);
 
   const handleClearAll = useCallback(() => {
-    if (window.confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+    if (showClearConfirm) {
+      // Second click - actually clear
       localStorage.removeItem(DRAFT_STORAGE_KEY);
       reset();
+      setShowClearConfirm(false);
       setToast({ message: 'All data cleared', type: 'success' });
+    } else {
+      // First click - show confirmation
+      setShowClearConfirm(true);
+      // Auto-reset after 3 seconds if not confirmed
+      setTimeout(() => setShowClearConfirm(false), 3000);
     }
-  }, [reset]);
+  }, [reset, showClearConfirm]);
 
   const handleExportPDF = useCallback(() => {
     try {
@@ -92,7 +100,7 @@ function App() {
 
   return (
     <div className="bg-[#112217] text-white font-display min-h-screen flex flex-col">
-      <Header onSaveDraft={handleSaveDraft} onClearAll={handleClearAll} isSaving={isSaving} />
+      <Header onSaveDraft={handleSaveDraft} onClearAll={handleClearAll} isSaving={isSaving} showClearConfirm={showClearConfirm} />
 
       {toast && (
         <Toast
