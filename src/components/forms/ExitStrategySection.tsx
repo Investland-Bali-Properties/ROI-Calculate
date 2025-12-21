@@ -1,29 +1,36 @@
-import type { ExitStrategy as ExitStrategyType } from '../../types/investment';
+import type { ExitStrategy as ExitStrategyData, ExitStrategyType } from '../../types/investment';
+import { EXIT_STRATEGIES } from '../../types/exitStrategies';
+import { StrategyCardCompact } from '../exitStrategies/StrategyCardCompact';
 
 interface Props {
-  data: ExitStrategyType;
+  data: ExitStrategyData;
   totalPriceIDR: number;
   displayExitPrice: number;
   symbol: string;
+  handoverDate: string;
   formatDisplay: (idr: number) => string;
-  onUpdate: <K extends keyof ExitStrategyType>(key: K, value: ExitStrategyType[K]) => void;
+  onUpdate: <K extends keyof ExitStrategyData>(key: K, value: ExitStrategyData[K]) => void;
   onExitPriceChange: (displayValue: number) => void;
+  onStrategyChange: (strategyId: ExitStrategyType, defaults: { appreciation: number; holdYears: number }) => void;
 }
 
-export function ExitStrategy({ 
-  data, 
-  totalPriceIDR, 
+export function ExitStrategySection({
+  data,
+  totalPriceIDR,
   displayExitPrice,
-  symbol, 
+  symbol,
+  handoverDate,
   formatDisplay,
   onUpdate,
-  onExitPriceChange
+  onExitPriceChange,
+  onStrategyChange,
 }: Props) {
   const closingCostIDR = data.projectedSalesPrice * (data.closingCostPercent / 100);
-  
-  const appreciation = totalPriceIDR > 0 
-    ? ((data.projectedSalesPrice - totalPriceIDR) / totalPriceIDR * 100)
-    : 0;
+
+  const appreciation =
+    totalPriceIDR > 0
+      ? ((data.projectedSalesPrice - totalPriceIDR) / totalPriceIDR) * 100
+      : 0;
 
   const parseInput = (value: string): number => {
     const digits = value.replace(/\D/g, '');
@@ -34,14 +41,43 @@ export function ExitStrategy({
     return num.toLocaleString('en-US');
   };
 
+  const handleStrategySelect = (strategyId: ExitStrategyType) => {
+    const strategy = EXIT_STRATEGIES.find((s) => s.id === strategyId);
+    if (strategy) {
+      onStrategyChange(strategyId, {
+        appreciation: strategy.defaultAppreciation,
+        holdYears: strategy.defaultHoldYears,
+      });
+    }
+  };
+
   return (
-    <section className="rounded-xl border border-border-dark bg-[#102216] p-6 shadow-sm">
+    <section className="rounded-xl border border-border-dark bg-background-dark p-6 shadow-sm">
+      {/* Header */}
       <div className="mb-6 flex items-center gap-2 border-b border-border-dark pb-4">
         <span className="material-symbols-outlined text-primary">flight_takeoff</span>
         <h2 className="text-xl font-bold text-white">Exit Strategy</h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Strategy Selection Cards */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-text-secondary mb-3">
+          Select Your Exit Strategy
+        </label>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {EXIT_STRATEGIES.map((strategy) => (
+            <StrategyCardCompact
+              key={strategy.id}
+              strategy={strategy}
+              isSelected={data.strategyType === strategy.id}
+              onSelect={handleStrategySelect}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Financial Inputs */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Projected Sales Price */}
         <label className="flex flex-col gap-2">
           <span className="text-sm font-medium text-text-secondary">Projected Sales Price</span>
@@ -61,6 +97,26 @@ export function ExitStrategy({
           </div>
         </label>
 
+        {/* Sale Date */}
+        <label className="flex flex-col gap-2">
+          <span className="text-sm font-medium text-text-secondary">Sale Date</span>
+          <span className="text-xs text-text-secondary/70">
+            {(() => {
+              const sale = new Date(data.saleDate);
+              const handover = new Date(handoverDate);
+              const diffYears = ((sale.getTime() - handover.getTime()) / (365.25 * 24 * 60 * 60 * 1000)).toFixed(1);
+              return `${diffYears} years after handover`;
+            })()}
+          </span>
+          <input
+            type="date"
+            value={data.saleDate}
+            min={handoverDate}
+            onChange={(e) => onUpdate('saleDate', e.target.value)}
+            className="w-full rounded-lg bg-surface-dark border border-border-dark px-4 py-3 text-white font-mono focus:border-primary focus:outline-none"
+          />
+        </label>
+
         {/* Closing Costs */}
         <label className="flex flex-col gap-2">
           <span className="text-sm font-medium text-text-secondary">Closing Costs</span>
@@ -76,7 +132,9 @@ export function ExitStrategy({
                 onChange={(e) => onUpdate('closingCostPercent', parseFloat(e.target.value) || 0)}
                 className="w-full rounded-lg bg-surface-dark border border-border-dark px-3 py-3 text-white font-mono text-center focus:border-primary focus:outline-none"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary">%</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary">
+                %
+              </span>
             </div>
             <div className="relative flex-grow">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-mono">
@@ -96,7 +154,7 @@ export function ExitStrategy({
       {/* Quick Appreciation Buttons */}
       <div className="mt-4 flex flex-wrap gap-2">
         <span className="text-xs text-text-secondary mr-2 self-center">Quick set:</span>
-        {[10, 15, 20, 25, 30].map(pct => {
+        {[10, 15, 20, 25, 30, 40, 50].map((pct) => {
           const isActive = Math.abs(appreciation - pct) < 1;
           return (
             <button

@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import type { InvestmentData, XIRRResult, CashFlowEntry } from '../types/investment';
+import type { InvestmentData, XIRRResult, CashFlowEntry, ExitStrategyType } from '../types/investment';
 import { calculateInvestmentReturn } from '../utils/xirr';
 import { useExchangeRates } from './useExchangeRates';
 import { v4 as uuidv4 } from 'uuid';
@@ -19,18 +19,13 @@ const DEFAULT_INVESTMENT: InvestmentData = {
     installmentMonths: 5
   },
   exit: {
-    projectedSalesPrice: 4200000000, // 4.2 billion IDR
-    closingCostPercent: 2.5
+    strategyType: 'rent-resell',
+    projectedSalesPrice: 4375000000, // 3.5B * 1.25 = 25% appreciation
+    closingCostPercent: 2.5,
+    holdPeriodYears: 6,
+    saleDate: new Date(Date.now() + (6 * 365 + 365) * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // handover + 6 years
   },
-  additionalCashFlows: [
-    {
-      id: uuidv4(),
-      date: new Date().toISOString().split('T')[0],
-      description: 'Furniture Package',
-      type: 'outflow',
-      amount: 150000000 // 150 million IDR
-    }
-  ]
+  additionalCashFlows: []
 };
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
@@ -154,6 +149,31 @@ export function useInvestment() {
       exit: { ...prev.exit, [key]: value }
     }));
   }, []);
+
+  const updateExitStrategy = useCallback((
+    strategyId: ExitStrategyType,
+    defaults: { appreciation: number; holdYears: number }
+  ) => {
+    setData(prev => {
+      const newSalesPrice = prev.property.totalPrice * (1 + defaults.appreciation / 100);
+      // Calculate sale date from handover date + hold period
+      const handoverDate = new Date(prev.property.handoverDate);
+      const saleDate = new Date(handoverDate);
+      saleDate.setFullYear(saleDate.getFullYear() + Math.floor(defaults.holdYears));
+      saleDate.setMonth(saleDate.getMonth() + Math.round((defaults.holdYears % 1) * 12));
+
+      return {
+        ...prev,
+        exit: {
+          ...prev.exit,
+          strategyType: strategyId,
+          projectedSalesPrice: newSalesPrice,
+          holdPeriodYears: defaults.holdYears,
+          saleDate: saleDate.toISOString().split('T')[0],
+        }
+      };
+    });
+  }, []);
   
   const addCashFlow = useCallback((entry: Omit<CashFlowEntry, 'id'>) => {
     const idr = displayToIdr(entry.amount);
@@ -209,6 +229,7 @@ export function useInvestment() {
     updateExitPriceFromDisplay,
     updatePayment,
     updateExit,
+    updateExitStrategy,
     addCashFlow,
     removeCashFlow,
     updateCashFlow,

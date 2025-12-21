@@ -109,10 +109,11 @@ export function generatePaymentSchedule(data: InvestmentData): CashFlow[] {
     });
   });
   
-  // Exit: Sale at handover + closing costs
+  // Exit: Sale at sale date + closing costs
   const closingCosts = exit.projectedSalesPrice * (exit.closingCostPercent / 100);
+  const saleDate = exit.saleDate ? new Date(exit.saleDate) : handoverDate;
   cashFlows.push({
-    date: handoverDate,
+    date: saleDate,
     amount: exit.projectedSalesPrice - closingCosts
   });
   

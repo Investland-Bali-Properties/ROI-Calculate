@@ -12,9 +12,14 @@ export interface PaymentTerms {
   installmentMonths: number;
 }
 
+export type ExitStrategyType = 'flip' | 'rent-resell' | 'milk-cow';
+
 export interface ExitStrategy {
+  strategyType: ExitStrategyType;
   projectedSalesPrice: number;  // Always stored in IDR
   closingCostPercent: number;
+  holdPeriodYears: number;      // Expected hold period based on strategy
+  saleDate: string;             // Projected sale date
 }
 
 export interface CashFlowEntry {

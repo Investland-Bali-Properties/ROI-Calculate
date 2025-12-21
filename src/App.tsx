@@ -4,9 +4,9 @@ import {
   Header,
   PropertyDetails,
   PaymentTerms,
-  ExitStrategy,
+  ExitStrategySection,
   CashFlows,
-  ProjectForecast
+  ProjectForecast,
 } from './components';
 import { Toast } from './components/ui/Toast';
 import { generatePDFReport } from './utils/pdfExport';
@@ -33,6 +33,7 @@ function App() {
     updateExitPriceFromDisplay,
     updatePayment,
     updateExit,
+    updateExitStrategy,
     addCashFlow,
     removeCashFlow,
     updateCashFlow,
@@ -84,7 +85,7 @@ function App() {
   return (
     <div className="bg-[#112217] text-white font-display min-h-screen flex flex-col">
       <Header onSaveDraft={handleSaveDraft} isSaving={isSaving} />
-      
+
       {toast && (
         <Toast
           message={toast.message}
@@ -92,7 +93,7 @@ function App() {
           onClose={() => setToast(null)}
         />
       )}
-      
+
       <main className="flex-grow w-full px-4 py-8 md:px-10 lg:px-20">
         <div className="mx-auto max-w-7xl">
           <div className="mb-8">
@@ -102,7 +103,7 @@ function App() {
             <p className="text-text-secondary text-lg mt-2">
               Enter the financial details of your Bali villa project to forecast returns and calculate XIRR.
             </p>
-            
+
             {currency !== 'IDR' && (
               <div className="mt-3 flex items-center gap-2 text-sm">
                 <span className="text-text-secondary">
@@ -117,7 +118,7 @@ function App() {
                     ✓ Updated {ratesLastUpdated}
                   </span>
                 )}
-                <button 
+                <button
                   onClick={refreshRates}
                   className="text-accent hover:text-white text-xs underline ml-2"
                   disabled={ratesLoading}
@@ -130,7 +131,7 @@ function App() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <div className="lg:col-span-8 flex flex-col gap-8">
-              <PropertyDetails 
+              <PropertyDetails
                 data={data.property}
                 symbol={symbol}
                 rate={rate}
@@ -138,25 +139,27 @@ function App() {
                 onUpdate={updateProperty}
                 onPriceChange={updatePriceFromDisplay}
               />
-              
-              <PaymentTerms 
+
+              <PaymentTerms
                 data={data.payment}
                 totalPriceIDR={data.property.totalPrice}
                 symbol={symbol}
                 formatDisplay={formatDisplay}
                 onUpdate={updatePayment}
               />
-              
-              <ExitStrategy
+
+              <ExitStrategySection
                 data={data.exit}
                 totalPriceIDR={data.property.totalPrice}
                 displayExitPrice={displayExitPrice}
                 symbol={symbol}
+                handoverDate={data.property.handoverDate}
                 formatDisplay={formatDisplay}
                 onUpdate={updateExit}
                 onExitPriceChange={updateExitPriceFromDisplay}
+                onStrategyChange={updateExitStrategy}
               />
-              
+
               <CashFlows
                 entries={data.additionalCashFlows}
                 symbol={symbol}

@@ -50,7 +50,7 @@ export function ProjectForecast({ result, location, currency, formatAbbrev, onCa
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-sm text-text-secondary">Hold Period</span>
+            <span className="text-sm text-text-secondary">Investment Period</span>
             <span className="text-sm text-white">{result.holdPeriodMonths} Months</span>
           </div>
         </div>
