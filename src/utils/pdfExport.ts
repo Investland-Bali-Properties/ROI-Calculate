@@ -312,16 +312,23 @@ export function generatePDFReport(options: PDFExportOptions): void {
     const remainingDisplay = idrToDisplayNum(remaining);
 
     if (hasSchedule) {
-      // Calculate display amounts with last payment adjustment for exact total
+      // Use stored schedule data with actual manually-edited amounts
+      // Apply rounding adjustment only to last payment to ensure display total matches
       const displayAmounts = scheduleEntries.map(entry => idrToDisplayNum(entry.amount));
       const sumExceptLast = displayAmounts.slice(0, -1).reduce((sum, amt) => sum + amt, 0);
       const lastDisplayAmount = remainingDisplay - sumExceptLast;
 
-      // Use stored schedule data
+      // Track actual total from schedule for display
+      let actualDisplayTotal = 0;
+
       for (let i = 0; i < scheduleEntries.length; i++) {
         const entry = scheduleEntries[i];
         const isLast = i === scheduleEntries.length - 1;
+        // Use actual stored amount, with rounding adjustment only for last payment
         const displayAmount = isLast ? lastDisplayAmount : displayAmounts[i];
+        actualDisplayTotal += displayAmount;
+
+        // Use the EXACT date from the schedule (preserves manual edits)
         const dateStr = new Date(entry.date).toLocaleDateString('en-US', {
           month: 'short',
           day: 'numeric',
