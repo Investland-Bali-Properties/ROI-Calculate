@@ -2,13 +2,12 @@ import type { XIRRResult } from '../../types/investment';
 
 interface Props {
   result: XIRRResult;
-  location: string;
   currency: string;
   formatAbbrev: (idr: number) => string;
   onExportPDF?: () => void;
 }
 
-export function ProjectForecast({ result, location, currency, formatAbbrev, onExportPDF }: Props) {
+export function ProjectForecast({ result, currency, formatAbbrev, onExportPDF }: Props) {
   const xirrPercent = (result.rate * 100).toFixed(1);
   const isPositive = result.rate >= 0;
 
@@ -63,20 +62,6 @@ export function ProjectForecast({ result, location, currency, formatAbbrev, onEx
             <span className="material-symbols-outlined">picture_as_pdf</span>
             Export PDF Report
           </button>
-        </div>
-      </div>
-
-      {/* Location Card */}
-      <div className="relative overflow-hidden rounded-xl border border-border-dark aspect-video">
-        <div className="absolute inset-0 bg-gradient-to-t from-[#112217] via-transparent to-transparent z-10" />
-        <img
-          alt="Map"
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwHT2VzPph9qs6JsqZp07mMJ3srl2KJqejoXd72EKf4wQ3xUm8zCJcOIe7tttl9IzEVp2l1tfiUBu4CxZd_OD52pyvy4uVPm6O7_ND5brY9xleq0LXuaD7uX3gQ9OoV4cbTozO4QGUkWHxSldAJdWU_1BNM7VSkn02aBmu_0DvrtCuFy7G0lfGJYbw73OMh-0h-aoxo6bUXkCJNh8vcBsih1nKxJwwPHatoc8Bngx0H3jD_-Qu9wbKxSkTJhd5JHvGi0LKlRXaSW2c"
-          className="h-full w-full object-cover opacity-60"
-        />
-        <div className="absolute bottom-4 left-4 z-20">
-          <p className="text-xs font-bold uppercase text-primary mb-1">Region</p>
-          <p className="text-white font-bold">{location}</p>
         </div>
       </div>
 

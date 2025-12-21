@@ -178,7 +178,6 @@ function App() {
             <div className="lg:col-span-4">
               <ProjectForecast
                 result={result}
-                location={data.property.location}
                 currency={currency}
                 formatAbbrev={formatAbbrev}
                 onExportPDF={handleExportPDF}
