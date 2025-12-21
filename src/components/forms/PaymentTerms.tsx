@@ -170,9 +170,25 @@ export function PaymentTerms({
 
                 {/* Payment Rows */}
                 <div className="max-h-64 overflow-y-auto">
-                  {data.schedule.map((entry, i) => {
-                    // Show ACTUAL stored amount - preserves manual edits
-                    const displayAmount = idrToDisplay(entry.amount);
+                  {(() => {
+                    // Pre-calculate display amounts to ensure they sum correctly
+                    // Last payment gets adjusted so visual sum = displayed total
+                    const displayAmounts: number[] = [];
+                    let runningSum = 0;
+
+                    for (let i = 0; i < data.schedule.length; i++) {
+                      if (i === data.schedule.length - 1) {
+                        // Last payment: total minus sum of previous displayed amounts
+                        displayAmounts.push(scheduleTotalDisplay - runningSum);
+                      } else {
+                        const amt = idrToDisplay(data.schedule[i].amount);
+                        displayAmounts.push(amt);
+                        runningSum += amt;
+                      }
+                    }
+
+                    return data.schedule.map((entry, i) => {
+                    const displayAmount = displayAmounts[i];
 
                     return (
                       <div
@@ -205,7 +221,8 @@ export function PaymentTerms({
                         </div>
                       </div>
                     );
-                  })}
+                  });
+                  })()}
                 </div>
 
                 {/* Total Row */}
