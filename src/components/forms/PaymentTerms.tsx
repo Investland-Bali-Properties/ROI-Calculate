@@ -1,20 +1,47 @@
-import type { PaymentTerms as PaymentTermsType } from '../../types/investment';
+import type { PaymentTerms as PaymentTermsType, PaymentScheduleEntry } from '../../types/investment';
 
 interface Props {
   data: PaymentTermsType;
   totalPriceIDR: number;
   symbol: string;
   formatDisplay: (idr: number) => string;
+  displayToIdr: (display: number) => number;
+  idrToDisplay: (idr: number) => number;
   onUpdate: <K extends keyof PaymentTermsType>(key: K, value: PaymentTermsType[K]) => void;
+  onRegenerateSchedule: () => void;
+  onUpdateScheduleEntry: (id: string, updates: Partial<Pick<PaymentScheduleEntry, 'date' | 'amount'>>) => void;
 }
 
-export function PaymentTerms({ data, totalPriceIDR, symbol, formatDisplay, onUpdate }: Props) {
+export function PaymentTerms({
+  data,
+  totalPriceIDR,
+  symbol,
+  formatDisplay,
+  displayToIdr,
+  idrToDisplay,
+  onUpdate,
+  onRegenerateSchedule,
+  onUpdateScheduleEntry
+}: Props) {
   // Fixed 50% down payment - company policy
   const DOWN_PAYMENT_PERCENT = 50;
   const downPaymentIDR = totalPriceIDR * (DOWN_PAYMENT_PERCENT / 100);
   const remainingIDR = totalPriceIDR - downPaymentIDR;
-  const monthlyIDR = data.installmentMonths > 0 ? remainingIDR / data.installmentMonths : 0;
-  const monthlyPercent = (100 - DOWN_PAYMENT_PERCENT) / data.installmentMonths;
+
+  // Use schedule if available, otherwise calculate
+  const hasSchedule = data.schedule && data.schedule.length > 0;
+  const scheduleTotal = hasSchedule
+    ? data.schedule.reduce((sum, entry) => sum + entry.amount, 0)
+    : 0;
+
+  const parseAmountInput = (value: string): number => {
+    const digits = value.replace(/\D/g, '');
+    return parseInt(digits, 10) || 0;
+  };
+
+  const formatNumber = (num: number): string => {
+    return num.toLocaleString('en-US');
+  };
 
   return (
     <section className="rounded-xl border border-border-dark bg-[#102216] p-6 shadow-sm">
@@ -97,82 +124,112 @@ export function PaymentTerms({ data, totalPriceIDR, symbol, formatDisplay, onUpd
                 <span className="material-symbols-outlined text-primary text-lg">event_note</span>
                 <h3 className="font-bold text-white">Remaining Payment Schedule</h3>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="1"
-                  max="24"
-                  value={data.installmentMonths}
-                  onChange={(e) => onUpdate('installmentMonths', parseInt(e.target.value) || 1)}
-                  className="w-14 rounded bg-surface-dark border border-border-dark px-2 py-1.5 text-white text-sm text-center focus:border-primary focus:outline-none"
-                />
-                <span className="text-sm text-text-secondary">months</span>
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-border-dark bg-surface-dark overflow-hidden">
-              {/* Table Header */}
-              <div className="grid grid-cols-12 text-xs font-semibold text-text-secondary uppercase bg-[#0d1a12] py-3 px-4 border-b border-border-dark">
-                <div className="col-span-1">#</div>
-                <div className="col-span-5">Due Date</div>
-                <div className="col-span-3 text-center">Percentage</div>
-                <div className="col-span-3 text-right">Amount</div>
-              </div>
-
-              {/* Payment Rows */}
-              <div className="max-h-64 overflow-y-auto">
-                {Array.from({ length: data.installmentMonths }, (_, i) => {
-                  const paymentDate = new Date();
-                  paymentDate.setMonth(paymentDate.getMonth() + i + 1);
-                  const dateStr = paymentDate.toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric'
-                  });
-
-                  // For last installment, add any rounding difference to ensure 100% coverage
-                  const isLastPayment = i === data.installmentMonths - 1;
-                  const previousPaymentsTotal = Math.floor(monthlyIDR) * i;
-                  const thisPaymentAmount = isLastPayment
-                    ? remainingIDR - previousPaymentsTotal
-                    : Math.floor(monthlyIDR);
-
-                  return (
-                    <div
-                      key={i}
-                      className={`grid grid-cols-12 items-center py-3 px-4 ${
-                        i < data.installmentMonths - 1 ? 'border-b border-border-dark/50' : ''
-                      }`}
-                    >
-                      <div className="col-span-1 text-text-secondary text-sm">{i + 1}</div>
-                      <div className="col-span-5 text-white text-sm">{dateStr}</div>
-                      <div className="col-span-3 text-center">
-                        <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                          {monthlyPercent.toFixed(1)}%
-                        </span>
-                      </div>
-                      <div className="col-span-3 text-right font-mono text-white text-sm">
-                        {symbol} {formatDisplay(thisPaymentAmount)}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Total Row */}
-              <div className="grid grid-cols-12 items-center py-3 px-4 bg-[#0d1a12] border-t border-border-dark">
-                <div className="col-span-1"></div>
-                <div className="col-span-5 text-text-secondary font-medium text-sm">Total Remaining</div>
-                <div className="col-span-3 text-center">
-                  <span className="text-xs text-text-secondary">
-                    {100 - DOWN_PAYMENT_PERCENT}%
-                  </span>
-                </div>
-                <div className="col-span-3 text-right font-mono text-primary font-bold">
-                  {symbol} {formatDisplay(remainingIDR)}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={onRegenerateSchedule}
+                  className="text-xs text-text-secondary hover:text-primary transition-colors flex items-center gap-1"
+                  title="Reset schedule to even payments"
+                >
+                  <span className="material-symbols-outlined text-sm">refresh</span>
+                  Reset
+                </button>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    max="24"
+                    value={data.installmentMonths}
+                    onChange={(e) => {
+                      onUpdate('installmentMonths', parseInt(e.target.value) || 1);
+                      // Schedule will be regenerated when user clicks Reset
+                    }}
+                    className="w-14 rounded bg-surface-dark border border-border-dark px-2 py-1.5 text-white text-sm text-center focus:border-primary focus:outline-none"
+                  />
+                  <span className="text-sm text-text-secondary">months</span>
                 </div>
               </div>
             </div>
+
+            {/* Show message if no schedule yet */}
+            {!hasSchedule && totalPriceIDR > 0 && (
+              <div className="text-center py-8 text-text-secondary">
+                <p className="mb-3">Click "Reset" to generate payment schedule</p>
+                <button
+                  onClick={onRegenerateSchedule}
+                  className="px-4 py-2 bg-primary text-[#112217] rounded-lg font-medium hover:bg-primary/90 transition-colors"
+                >
+                  Generate Schedule
+                </button>
+              </div>
+            )}
+
+            {hasSchedule && (
+              <div className="rounded-lg border border-border-dark bg-surface-dark overflow-hidden">
+                {/* Table Header */}
+                <div className="grid grid-cols-12 text-xs font-semibold text-text-secondary uppercase bg-[#0d1a12] py-3 px-4 border-b border-border-dark">
+                  <div className="col-span-1">#</div>
+                  <div className="col-span-5">Due Date</div>
+                  <div className="col-span-6 text-right">Amount</div>
+                </div>
+
+                {/* Payment Rows */}
+                <div className="max-h-64 overflow-y-auto">
+                  {data.schedule.map((entry, i) => {
+                    const displayAmount = idrToDisplay(entry.amount);
+
+                    return (
+                      <div
+                        key={entry.id}
+                        className={`grid grid-cols-12 items-center py-2 px-4 ${
+                          i < data.schedule.length - 1 ? 'border-b border-border-dark/50' : ''
+                        }`}
+                      >
+                        <div className="col-span-1 text-text-secondary text-sm">{i + 1}</div>
+                        <div className="col-span-5">
+                          <input
+                            type="date"
+                            value={entry.date}
+                            onChange={(e) => onUpdateScheduleEntry(entry.id, { date: e.target.value })}
+                            className="w-full bg-transparent text-white text-sm focus:outline-none focus:bg-surface-dark/50 rounded px-1 py-1 cursor-pointer"
+                          />
+                        </div>
+                        <div className="col-span-6 flex items-center justify-end gap-1">
+                          <span className="text-text-secondary text-sm">{symbol}</span>
+                          <input
+                            type="text"
+                            value={formatNumber(displayAmount)}
+                            onChange={(e) => {
+                              const displayValue = parseAmountInput(e.target.value);
+                              const idrValue = displayToIdr(displayValue);
+                              onUpdateScheduleEntry(entry.id, { amount: idrValue });
+                            }}
+                            className="w-32 bg-transparent text-white font-mono text-sm text-right focus:outline-none focus:bg-surface-dark/50 rounded px-2 py-1"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Total Row */}
+                <div className="grid grid-cols-12 items-center py-3 px-4 bg-[#0d1a12] border-t border-border-dark">
+                  <div className="col-span-1"></div>
+                  <div className="col-span-5 text-text-secondary font-medium text-sm">Total Scheduled</div>
+                  <div className="col-span-6 text-right">
+                    <span className={`font-mono font-bold ${
+                      Math.abs(scheduleTotal - remainingIDR) < 1 ? 'text-primary' : 'text-amber-400'
+                    }`}>
+                      {symbol} {formatDisplay(scheduleTotal)}
+                    </span>
+                    {Math.abs(scheduleTotal - remainingIDR) >= 1 && (
+                      <div className="text-xs text-amber-400 mt-1">
+                        {scheduleTotal > remainingIDR ? '+' : ''}{formatDisplay(scheduleTotal - remainingIDR)} difference
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
