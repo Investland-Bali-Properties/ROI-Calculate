@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import type { InvestmentData, XIRRResult, CashFlowEntry, ExitStrategyType } from '../types/investment';
+import type { InvestmentData, XIRRResult, CashFlowEntry, ExitStrategyType, PaymentScheduleEntry } from '../types/investment';
 import { calculateInvestmentReturn } from '../utils/xirr';
 import { useExchangeRates } from './useExchangeRates';
 import { v4 as uuidv4 } from 'uuid';
@@ -17,7 +17,8 @@ const DEFAULT_INVESTMENT: InvestmentData = {
   payment: {
     type: 'plan',
     downPaymentPercent: 50,
-    installmentMonths: 6
+    installmentMonths: 6,
+    schedule: []
   },
   exit: {
     strategyType: 'flip',
@@ -140,6 +141,60 @@ export function useInvestment() {
       payment: { ...prev.payment, [key]: value }
     }));
   }, []);
+
+  // Generate payment schedule based on current settings
+  const generateSchedule = useCallback((
+    totalPrice: number,
+    downPaymentPercent: number,
+    installmentMonths: number
+  ): PaymentScheduleEntry[] => {
+    const remaining = totalPrice * (1 - downPaymentPercent / 100);
+    const basePayment = Math.floor(remaining / installmentMonths);
+
+    return Array.from({ length: installmentMonths }, (_, i) => {
+      const paymentDate = new Date();
+      paymentDate.setMonth(paymentDate.getMonth() + i + 1);
+
+      // Last payment gets any rounding difference
+      const isLast = i === installmentMonths - 1;
+      const previousTotal = basePayment * i;
+      const amount = isLast ? remaining - previousTotal : basePayment;
+
+      return {
+        id: uuidv4(),
+        date: paymentDate.toISOString().split('T')[0],
+        amount
+      };
+    });
+  }, []);
+
+  // Regenerate schedule (called when user changes months or wants to reset)
+  const regenerateSchedule = useCallback(() => {
+    setData(prev => ({
+      ...prev,
+      payment: {
+        ...prev.payment,
+        schedule: generateSchedule(
+          prev.property.totalPrice,
+          prev.payment.downPaymentPercent,
+          prev.payment.installmentMonths
+        )
+      }
+    }));
+  }, [generateSchedule]);
+
+  // Update individual schedule entry
+  const updateScheduleEntry = useCallback((id: string, updates: Partial<Pick<PaymentScheduleEntry, 'date' | 'amount'>>) => {
+    setData(prev => ({
+      ...prev,
+      payment: {
+        ...prev.payment,
+        schedule: prev.payment.schedule.map(entry =>
+          entry.id === id ? { ...entry, ...updates } : entry
+        )
+      }
+    }));
+  }, []);
   
   const updateExit = useCallback(<K extends keyof InvestmentData['exit']>(
     key: K,
@@ -241,6 +296,8 @@ export function useInvestment() {
     updatePriceFromDisplay,
     updateExitPriceFromDisplay,
     updatePayment,
+    regenerateSchedule,
+    updateScheduleEntry,
     updateExit,
     updateExitStrategy,
     addCashFlow,

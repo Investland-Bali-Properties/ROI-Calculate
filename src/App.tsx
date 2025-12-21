@@ -27,10 +27,13 @@ function App() {
     formatDisplay,
     formatAbbrev,
     idrToDisplay,
+    displayToIdr,
     updateProperty,
     updatePriceFromDisplay,
     updateExitPriceFromDisplay,
     updatePayment,
+    regenerateSchedule,
+    updateScheduleEntry,
     updateExit,
     reset,
   } = useInvestment();
@@ -145,7 +148,11 @@ function App() {
                 totalPriceIDR={data.property.totalPrice}
                 symbol={symbol}
                 formatDisplay={formatDisplay}
+                displayToIdr={displayToIdr}
+                idrToDisplay={idrToDisplay}
                 onUpdate={updatePayment}
+                onRegenerateSchedule={regenerateSchedule}
+                onUpdateScheduleEntry={updateScheduleEntry}
               />
 
               <ExitStrategySection

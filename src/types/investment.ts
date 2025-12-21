@@ -6,10 +6,17 @@ export interface PropertyDetails {
   currency: 'IDR' | 'USD' | 'AUD' | 'EUR';
 }
 
+export interface PaymentScheduleEntry {
+  id: string;
+  date: string;
+  amount: number;  // Always stored in IDR
+}
+
 export interface PaymentTerms {
   type: 'full' | 'plan';
   downPaymentPercent: number;
   installmentMonths: number;
+  schedule: PaymentScheduleEntry[];  // Individual payment entries
 }
 
 export type ExitStrategyType = 'flip' | 'rent-resell' | 'milk-cow';

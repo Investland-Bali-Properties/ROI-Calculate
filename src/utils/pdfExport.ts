@@ -266,10 +266,15 @@ export function generatePDFReport(options: PDFExportOptions): void {
   if (data.payment.type === 'plan') {
     const downPayment = data.property.totalPrice * (data.payment.downPaymentPercent / 100);
     const remaining = data.property.totalPrice - downPayment;
-    const monthlyPayment = remaining / data.payment.installmentMonths;
+
+    // Use schedule data if available, otherwise calculate
+    const hasSchedule = data.payment.schedule && data.payment.schedule.length > 0;
+    const scheduleEntries = hasSchedule ? data.payment.schedule : [];
+    const numRows = hasSchedule ? scheduleEntries.length : data.payment.installmentMonths;
+
     const rowHeight = 8;
     const headerHeight = 20;
-    const scheduleCardHeight = headerHeight + (data.payment.installmentMonths + 2) * rowHeight + 6;
+    const scheduleCardHeight = headerHeight + (numRows + 2) * rowHeight + 6;
 
     doc.setFillColor(...COLORS.surface);
     doc.roundedRect(margin, yPos, contentWidth, scheduleCardHeight, 2, 2, 'F');
@@ -297,52 +302,86 @@ export function generatePDFReport(options: PDFExportOptions): void {
     doc.setFont('helvetica', 'bold');
     doc.text('#', margin + 8, tableY + 5.5);
     doc.text('DUE DATE', margin + 20, tableY + 5.5);
-    doc.text('PERCENTAGE', margin + 70, tableY + 5.5);
     doc.text('AMOUNT', pageWidth - margin - 8, tableY + 5.5, { align: 'right' });
 
     // Payment rows
     let rowY = tableY + rowHeight;
-    const monthlyPercent = (100 - data.payment.downPaymentPercent) / data.payment.installmentMonths;
-    const baseMonthlyPayment = Math.floor(monthlyPayment);
+    let scheduleTotal = 0;
 
-    for (let i = 0; i < data.payment.installmentMonths; i++) {
-      const paymentDate = new Date();
-      paymentDate.setMonth(paymentDate.getMonth() + i + 1);
-      const dateStr = paymentDate.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      });
+    if (hasSchedule) {
+      // Use stored schedule data
+      for (let i = 0; i < scheduleEntries.length; i++) {
+        const entry = scheduleEntries[i];
+        const dateStr = new Date(entry.date).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        });
 
-      // For last installment, add any rounding difference to ensure 100% coverage
-      const isLastPayment = i === data.payment.installmentMonths - 1;
-      const previousPaymentsTotal = baseMonthlyPayment * i;
-      const thisPaymentAmount = isLastPayment
-        ? remaining - previousPaymentsTotal
-        : baseMonthlyPayment;
+        scheduleTotal += entry.amount;
 
-      // Alternate row background
-      if (i % 2 === 0) {
-        doc.setFillColor(COLORS.surfaceDark[0] * 0.5, COLORS.surfaceDark[1] * 0.5, COLORS.surfaceDark[2] * 0.5);
-        doc.rect(margin + 4, rowY, contentWidth - 8, rowHeight, 'F');
+        // Alternate row background
+        if (i % 2 === 0) {
+          doc.setFillColor(COLORS.surfaceDark[0] * 0.5, COLORS.surfaceDark[1] * 0.5, COLORS.surfaceDark[2] * 0.5);
+          doc.rect(margin + 4, rowY, contentWidth - 8, rowHeight, 'F');
+        }
+
+        doc.setTextColor(...COLORS.textSecondary);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`${i + 1}`, margin + 8, rowY + 5.5);
+
+        doc.setTextColor(...COLORS.textPrimary);
+        doc.text(dateStr, margin + 20, rowY + 5.5);
+
+        doc.setTextColor(...COLORS.textPrimary);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${symbol}${formatDisplay(entry.amount)}`, pageWidth - margin - 8, rowY + 5.5, { align: 'right' });
+
+        rowY += rowHeight;
       }
+    } else {
+      // Calculate payments (fallback for legacy data)
+      const monthlyPayment = remaining / data.payment.installmentMonths;
+      const baseMonthlyPayment = Math.floor(monthlyPayment);
 
-      doc.setTextColor(...COLORS.textSecondary);
-      doc.setFontSize(7);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${i + 1}`, margin + 8, rowY + 5.5);
+      for (let i = 0; i < data.payment.installmentMonths; i++) {
+        const paymentDate = new Date();
+        paymentDate.setMonth(paymentDate.getMonth() + i + 1);
+        const dateStr = paymentDate.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        });
 
-      doc.setTextColor(...COLORS.textPrimary);
-      doc.text(dateStr, margin + 20, rowY + 5.5);
+        const isLastPayment = i === data.payment.installmentMonths - 1;
+        const previousPaymentsTotal = baseMonthlyPayment * i;
+        const thisPaymentAmount = isLastPayment
+          ? remaining - previousPaymentsTotal
+          : baseMonthlyPayment;
 
-      doc.setTextColor(...COLORS.cyan);
-      doc.text(`${monthlyPercent.toFixed(1)}%`, margin + 70, rowY + 5.5);
+        scheduleTotal += thisPaymentAmount;
 
-      doc.setTextColor(...COLORS.textPrimary);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`${symbol}${formatDisplay(thisPaymentAmount)}`, pageWidth - margin - 8, rowY + 5.5, { align: 'right' });
+        // Alternate row background
+        if (i % 2 === 0) {
+          doc.setFillColor(COLORS.surfaceDark[0] * 0.5, COLORS.surfaceDark[1] * 0.5, COLORS.surfaceDark[2] * 0.5);
+          doc.rect(margin + 4, rowY, contentWidth - 8, rowHeight, 'F');
+        }
 
-      rowY += rowHeight;
+        doc.setTextColor(...COLORS.textSecondary);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`${i + 1}`, margin + 8, rowY + 5.5);
+
+        doc.setTextColor(...COLORS.textPrimary);
+        doc.text(dateStr, margin + 20, rowY + 5.5);
+
+        doc.setTextColor(...COLORS.textPrimary);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${symbol}${formatDisplay(thisPaymentAmount)}`, pageWidth - margin - 8, rowY + 5.5, { align: 'right' });
+
+        rowY += rowHeight;
+      }
     }
 
     // Total row
@@ -352,10 +391,9 @@ export function generatePDFReport(options: PDFExportOptions): void {
     doc.setTextColor(...COLORS.textSecondary);
     doc.setFontSize(7);
     doc.setFont('helvetica', 'bold');
-    doc.text('TOTAL REMAINING', margin + 20, rowY + 5.5);
-    doc.text(`${100 - data.payment.downPaymentPercent}%`, margin + 70, rowY + 5.5);
+    doc.text('TOTAL SCHEDULED', margin + 20, rowY + 5.5);
     doc.setTextColor(...COLORS.primary);
-    doc.text(`${symbol}${formatDisplay(remaining)}`, pageWidth - margin - 8, rowY + 5.5, { align: 'right' });
+    doc.text(`${symbol}${formatDisplay(scheduleTotal)}`, pageWidth - margin - 8, rowY + 5.5, { align: 'right' });
 
     yPos += scheduleCardHeight + 6;
   } else {
