@@ -134,7 +134,7 @@ function App() {
             )}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-8 flex flex-col gap-8">
               <PropertyDetails
                 data={data.property}
@@ -175,7 +175,7 @@ function App() {
               />
             </div>
 
-            <div className="lg:col-span-4 self-start">
+            <div className="lg:col-span-4">
               <ProjectForecast
                 result={result}
                 currency={currency}
