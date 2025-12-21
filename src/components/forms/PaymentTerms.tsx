@@ -16,10 +16,6 @@ export function PaymentTerms({ data, totalPriceIDR, symbol, formatDisplay, onUpd
   const monthlyIDR = data.installmentMonths > 0 ? remainingIDR / data.installmentMonths : 0;
   const monthlyPercent = (100 - DOWN_PAYMENT_PERCENT) / data.installmentMonths;
 
-  const endDate = new Date();
-  endDate.setMonth(endDate.getMonth() + data.installmentMonths);
-  const endDateStr = endDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-
   return (
     <section className="rounded-xl border border-border-dark bg-[#102216] p-6 shadow-sm">
       <div className="mb-6 flex items-center gap-2 border-b border-border-dark pb-4">
