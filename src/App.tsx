@@ -118,7 +118,7 @@ function App() {
   const displayExitPrice = idrToDisplay(data.exit.projectedSalesPrice);
 
   return (
-    <div className="bg-[#112217] text-white font-display min-h-screen flex flex-col">
+    <div className="bg-background text-text-primary font-display min-h-screen flex flex-col">
       <Header onSaveDraft={handleSaveDraft} onClearAll={handleClearAll} isSaving={isSaving} showClearConfirm={showClearConfirm} />
 
       {toast && (
@@ -132,10 +132,10 @@ function App() {
       <main className="flex-grow w-full px-4 py-8 md:px-10 lg:px-20">
         <div className="mx-auto max-w-7xl">
           <div className="mb-8">
-            <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">
+            <h1 className="text-3xl md:text-4xl font-black text-text-primary tracking-tight">
               New Investment Calculation
             </h1>
-            <p className="text-text-secondary text-lg mt-2">
+            <p className="text-text-muted text-lg mt-2">
               Enter the financial details of your Bali villa project to forecast returns and calculate XIRR.
             </p>
 

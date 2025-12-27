@@ -14,17 +14,17 @@ export function ProjectForecast({ result, currency, formatAbbrev, onExportPDF }:
   return (
     <div className="sticky top-28 flex flex-col gap-6">
       {/* Main Card */}
-      <div className="rounded-xl border border-border-dark bg-[#102216] p-6 shadow-xl">
-        <h3 className="mb-4 text-lg font-bold text-white">Project Forecast</h3>
-        
+      <div className="rounded-xl border border-border bg-surface p-6 shadow-lg">
+        <h3 className="mb-4 text-lg font-bold text-text-primary">Project Forecast</h3>
+
         {/* XIRR Display */}
-        <div className="mb-6 rounded-lg bg-surface-dark p-4 text-center border border-border-dark">
+        <div className="mb-6 rounded-lg bg-primary-light p-4 text-center border border-primary/20">
           <p className="text-sm text-text-secondary mb-1">Estimated XIRR</p>
           <div className="flex items-end justify-center gap-2">
-            <span className={`text-4xl font-black ${isPositive ? 'text-primary' : 'text-red-400'}`}>
+            <span className={`text-4xl font-black ${isPositive ? 'text-primary' : 'text-negative'}`}>
               {xirrPercent}%
             </span>
-            <span className={`text-xs mb-1.5 flex items-center ${isPositive ? 'text-primary' : 'text-red-400'}`}>
+            <span className={`text-xs mb-1.5 flex items-center ${isPositive ? 'text-primary' : 'text-negative'}`}>
               <span className="material-symbols-outlined text-sm">
                 {isPositive ? 'trending_up' : 'trending_down'}
               </span>
@@ -35,21 +35,21 @@ export function ProjectForecast({ result, currency, formatAbbrev, onExportPDF }:
 
         {/* Metrics */}
         <div className="space-y-4">
-          <div className="flex justify-between border-b border-border-dark/50 pb-2">
+          <div className="flex justify-between border-b border-border pb-2">
             <span className="text-sm text-text-secondary">Total Invested</span>
-            <span className="text-sm font-mono text-white">
+            <span className="text-sm font-mono text-text-primary">
               {formatAbbrev(result.totalInvested)} {currency}
             </span>
           </div>
-          <div className="flex justify-between border-b border-border-dark/50 pb-2">
+          <div className="flex justify-between border-b border-border pb-2">
             <span className="text-sm text-text-secondary">Net Profit</span>
-            <span className={`text-sm font-mono ${result.netProfit >= 0 ? 'text-primary' : 'text-red-400'}`}>
+            <span className={`text-sm font-mono ${result.netProfit >= 0 ? 'text-primary' : 'text-negative'}`}>
               {result.netProfit >= 0 ? '+' : ''}{formatAbbrev(result.netProfit)} {currency}
             </span>
           </div>
           <div className="flex justify-between">
             <span className="text-sm text-text-secondary">Investment Period</span>
-            <span className="text-sm text-white">{result.holdPeriodMonths} Months</span>
+            <span className="text-sm text-text-primary">{result.holdPeriodMonths} Months</span>
           </div>
         </div>
 
@@ -57,7 +57,7 @@ export function ProjectForecast({ result, currency, formatAbbrev, onExportPDF }:
         <div className="mt-6">
           <button
             onClick={onExportPDF}
-            className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-3 text-[#112217] font-bold hover:bg-[#10d652] transition-colors"
+            className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-3 text-white font-bold hover:bg-primary-dark transition-colors"
           >
             <span className="material-symbols-outlined">picture_as_pdf</span>
             Export PDF Report
@@ -66,10 +66,10 @@ export function ProjectForecast({ result, currency, formatAbbrev, onExportPDF }:
       </div>
 
       {/* Info */}
-      <div className="rounded-lg bg-surface-dark/50 p-4 border border-border-dark/50">
+      <div className="rounded-lg bg-surface-alt p-4 border border-border">
         <div className="flex gap-3">
-          <span className="material-symbols-outlined text-text-secondary">info</span>
-          <p className="text-xs text-text-secondary">
+          <span className="material-symbols-outlined text-text-muted">info</span>
+          <p className="text-xs text-text-muted">
             XIRR calculation uses irregular intervals. All values stored in IDR internally.
           </p>
         </div>

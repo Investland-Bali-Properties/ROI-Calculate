@@ -1,29 +1,44 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #13ec5b;
-  --color-background-light: #f6f8f6;
-  --color-background-dark: #102216;
-  --color-surface-dark: #193322;
-  --color-border-dark: #326744;
-  --color-text-secondary: #92c9a4;
+  /* Light theme matching PDF */
+  --color-primary: #22c55e;
+  --color-primary-dark: #16a34a;
+  --color-primary-light: #dcfce7;
+
+  --color-background: #fafbfc;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f9fafb;
+
+  --color-border: #e5e7eb;
+  --color-border-light: #f3f4f6;
+
+  --color-text-primary: #111827;
+  --color-text-secondary: #4b5563;
+  --color-text-muted: #9ca3af;
+
+  --color-negative: #ef4444;
+  --color-negative-light: #fee2e2;
+  --color-warning: #f97316;
+  --color-warning-light: #ffedd5;
+
   --font-family-display: "Inter", sans-serif;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - light theme */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #112217;
+  background: #f3f4f6;
 }
 ::-webkit-scrollbar-thumb {
-  background: #326744;
+  background: #d1d5db;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #13ec5b;
+  background: #22c55e;
 }
 
 /* Material symbols styling */
@@ -31,20 +46,19 @@
   font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
-/* Date input styling */
+/* Date input styling - light theme */
 input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(1);
   cursor: pointer;
 }
 
 /* Radio card styles */
 .radio-card-input:checked + .radio-card-content {
-  border-color: #13ec5b;
-  background-color: rgba(19, 236, 91, 0.05);
+  border-color: #22c55e;
+  background-color: rgba(34, 197, 94, 0.05);
 }
 .radio-card-input:checked + .radio-card-content .radio-indicator {
-  border-color: #13ec5b;
-  background-color: #13ec5b;
+  border-color: #22c55e;
+  background-color: #22c55e;
 }
 .radio-card-input:checked + .radio-card-content .radio-indicator::after {
   opacity: 1;

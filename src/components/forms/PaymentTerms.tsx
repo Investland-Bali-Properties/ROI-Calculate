@@ -12,8 +12,6 @@ interface Props {
   onUpdateScheduleEntry: (id: string, updates: Partial<Pick<PaymentScheduleEntry, 'date' | 'amount'>>) => void;
 }
 
-// Note: idrToDisplay is already in props, but wasn't used before booking fee was added
-
 export function PaymentTerms({
   data,
   totalPriceIDR,
@@ -25,20 +23,15 @@ export function PaymentTerms({
   onRegenerateSchedule,
   onUpdateScheduleEntry
 }: Props) {
-  // Fixed 50% down payment - company policy
   const DOWN_PAYMENT_PERCENT = 50;
   const downPaymentIDR = totalPriceIDR * (DOWN_PAYMENT_PERCENT / 100);
 
-  // Use schedule if available, otherwise calculate
   const hasSchedule = data.schedule && data.schedule.length > 0;
-  // Calculate actual total from stored schedule amounts in IDR first, then convert
-  // This avoids rounding errors from summing individually-converted amounts
   const scheduleTotalIDR = hasSchedule
     ? data.schedule.reduce((sum, entry) => sum + entry.amount, 0)
     : 0;
   const scheduleTotalDisplay = idrToDisplay(scheduleTotalIDR);
 
-  // Expected remaining (50% of total price)
   const expectedRemainingIDR = totalPriceIDR * (1 - DOWN_PAYMENT_PERCENT / 100);
   const expectedRemainingDisplay = idrToDisplay(expectedRemainingIDR);
 
@@ -52,10 +45,10 @@ export function PaymentTerms({
   };
 
   return (
-    <section className="rounded-xl border border-border-dark bg-[#102216] p-6 shadow-sm">
-      <div className="mb-6 flex items-center gap-2 border-b border-border-dark pb-4">
+    <section className="rounded-xl border border-border bg-surface p-6 shadow-sm">
+      <div className="mb-6 flex items-center gap-2 border-b border-border pb-4">
         <span className="material-symbols-outlined text-primary">account_balance_wallet</span>
-        <h2 className="text-xl font-bold text-white">Payment Terms</h2>
+        <h2 className="text-xl font-bold text-text-primary">Payment Terms</h2>
       </div>
 
       {/* Payment Type Selection */}
@@ -68,12 +61,12 @@ export function PaymentTerms({
             onChange={() => onUpdate('type', 'full')}
             className="sr-only peer"
           />
-          <div className="p-4 rounded-lg border border-border-dark bg-surface-dark peer-checked:border-primary peer-checked:bg-primary/10 transition-all flex items-center gap-3">
-            <div className="w-5 h-5 rounded-full border-2 border-text-secondary peer-checked:border-primary flex items-center justify-center">
+          <div className="p-4 rounded-lg border border-border bg-surface-alt peer-checked:border-primary peer-checked:bg-primary-light transition-all flex items-center gap-3">
+            <div className="w-5 h-5 rounded-full border-2 border-text-muted flex items-center justify-center">
               {data.type === 'full' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
             </div>
             <div>
-              <div className="font-bold text-white">Full Payment</div>
+              <div className="font-bold text-text-primary">Full Payment</div>
               <div className="text-sm text-text-secondary">100% upon signing</div>
             </div>
           </div>
@@ -87,12 +80,12 @@ export function PaymentTerms({
             onChange={() => onUpdate('type', 'plan')}
             className="sr-only peer"
           />
-          <div className="p-4 rounded-lg border border-border-dark bg-surface-dark peer-checked:border-primary peer-checked:bg-primary/10 transition-all flex items-center gap-3">
-            <div className="w-5 h-5 rounded-full border-2 border-text-secondary peer-checked:border-primary flex items-center justify-center">
+          <div className="p-4 rounded-lg border border-border bg-surface-alt peer-checked:border-primary peer-checked:bg-primary-light transition-all flex items-center gap-3">
+            <div className="w-5 h-5 rounded-full border-2 border-text-muted flex items-center justify-center">
               {data.type === 'plan' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
             </div>
             <div>
-              <div className="font-bold text-white">Payment Plan</div>
+              <div className="font-bold text-text-primary">Payment Plan</div>
               <div className="text-sm text-text-secondary">Split payments until handover</div>
             </div>
           </div>
@@ -107,21 +100,21 @@ export function PaymentTerms({
             <div className="text-sm text-text-secondary mb-2">
               Down Payment ({DOWN_PAYMENT_PERCENT}%)
             </div>
-            <div className="text-3xl font-mono text-white mb-1">
+            <div className="text-3xl font-mono text-text-primary mb-1">
               {symbol} {formatDisplay(downPaymentIDR)}
             </div>
-            
+
             {/* Progress Bar */}
             <div className="flex items-center gap-4 mt-4 mb-2">
-              <div className="flex-1 h-3 bg-surface-dark rounded-full overflow-hidden">
-                <div 
+              <div className="flex-1 h-3 bg-border-light rounded-full overflow-hidden">
+                <div
                   className="h-full bg-primary rounded-full"
                   style={{ width: `${DOWN_PAYMENT_PERCENT}%` }}
                 />
               </div>
               <span className="text-primary font-bold">{DOWN_PAYMENT_PERCENT}%</span>
             </div>
-            
+
             <p className="text-sm text-text-secondary">Due immediately upon signing.</p>
           </div>
 
@@ -130,7 +123,7 @@ export function PaymentTerms({
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary text-lg">event_note</span>
-                <h3 className="font-bold text-white">Remaining Payment Schedule</h3>
+                <h3 className="font-bold text-text-primary">Remaining Payment Schedule</h3>
               </div>
               <div className="flex items-center gap-2">
                 <input
@@ -140,25 +133,24 @@ export function PaymentTerms({
                   value={data.installmentMonths}
                   onChange={(e) => {
                     const newMonths = parseInt(e.target.value) || 1;
-                    // Atomic update: set months and regenerate schedule in one go
                     onRegenerateSchedule(newMonths);
                   }}
-                  className="w-14 rounded bg-surface-dark border border-border-dark px-2 py-1.5 text-white text-sm text-center focus:border-primary focus:outline-none"
+                  className="w-14 rounded bg-surface-alt border border-border px-2 py-1.5 text-text-primary text-sm text-center focus:border-primary focus:outline-none"
                 />
                 <span className="text-sm text-text-secondary">months</span>
               </div>
             </div>
 
             {!hasSchedule && totalPriceIDR > 0 && (
-              <div className="text-center py-6 text-text-secondary border border-dashed border-border-dark rounded-lg">
+              <div className="text-center py-6 text-text-secondary border border-dashed border-border rounded-lg">
                 <p className="text-sm">Change the number of months to generate schedule</p>
               </div>
             )}
 
             {hasSchedule && (
-              <div className="rounded-lg border border-border-dark bg-surface-dark overflow-hidden">
+              <div className="rounded-lg border border-border bg-surface-alt overflow-hidden">
                 {/* Table Header */}
-                <div className="grid grid-cols-12 text-xs font-semibold text-text-secondary uppercase bg-[#0d1a12] py-3 px-4 border-b border-border-dark">
+                <div className="grid grid-cols-12 text-xs font-semibold text-text-secondary uppercase bg-background py-3 px-4 border-b border-border">
                   <div className="col-span-1">#</div>
                   <div className="col-span-5 flex items-center gap-1">
                     Due Date
@@ -173,14 +165,11 @@ export function PaymentTerms({
                 {/* Payment Rows */}
                 <div className="max-h-64 overflow-y-auto">
                   {(() => {
-                    // Pre-calculate display amounts to ensure they sum correctly
-                    // Last payment gets adjusted so visual sum = displayed total
                     const displayAmounts: number[] = [];
                     let runningSum = 0;
 
                     for (let i = 0; i < data.schedule.length; i++) {
                       if (i === data.schedule.length - 1) {
-                        // Last payment: total minus sum of previous displayed amounts
                         displayAmounts.push(scheduleTotalDisplay - runningSum);
                       } else {
                         const amt = idrToDisplay(data.schedule[i].amount);
@@ -196,20 +185,20 @@ export function PaymentTerms({
                       <div
                         key={entry.id}
                         className={`grid grid-cols-12 items-center py-2 px-4 ${
-                          i < data.schedule.length - 1 ? 'border-b border-border-dark/50' : ''
+                          i < data.schedule.length - 1 ? 'border-b border-border-light' : ''
                         }`}
                       >
-                        <div className="col-span-1 text-text-secondary text-sm">{i + 1}</div>
+                        <div className="col-span-1 text-text-muted text-sm">{i + 1}</div>
                         <div className="col-span-5">
                           <input
                             type="date"
                             value={entry.date}
                             onChange={(e) => onUpdateScheduleEntry(entry.id, { date: e.target.value })}
-                            className="w-full bg-transparent text-white text-sm rounded px-2 py-1 cursor-pointer hover:bg-white/5 focus:outline-none focus:bg-white/10 focus:ring-1 focus:ring-primary/50 transition-colors"
+                            className="w-full bg-transparent text-text-primary text-sm rounded px-2 py-1 cursor-pointer hover:bg-background focus:outline-none focus:bg-background focus:ring-1 focus:ring-primary/50 transition-colors"
                           />
                         </div>
                         <div className="col-span-6 flex items-center justify-end gap-1">
-                          <span className="text-text-secondary text-sm">{symbol}</span>
+                          <span className="text-text-muted text-sm">{symbol}</span>
                           <input
                             type="text"
                             value={formatNumber(displayAmount)}
@@ -218,7 +207,7 @@ export function PaymentTerms({
                               const idrValue = displayToIdr(displayValue);
                               onUpdateScheduleEntry(entry.id, { amount: idrValue });
                             }}
-                            className="w-32 bg-transparent text-white font-mono text-sm text-right rounded px-2 py-1 hover:bg-white/5 focus:outline-none focus:bg-white/10 focus:ring-1 focus:ring-primary/50 transition-colors"
+                            className="w-32 bg-transparent text-text-primary font-mono text-sm text-right rounded px-2 py-1 hover:bg-background focus:outline-none focus:bg-background focus:ring-1 focus:ring-primary/50 transition-colors"
                           />
                         </div>
                       </div>
@@ -228,18 +217,18 @@ export function PaymentTerms({
                 </div>
 
                 {/* Total Row */}
-                <div className="grid grid-cols-12 items-center py-3 px-4 bg-[#0d1a12] border-t border-border-dark">
+                <div className="grid grid-cols-12 items-center py-3 px-4 bg-background border-t border-border">
                   <div className="col-span-1"></div>
                   <div className="col-span-5 text-text-secondary font-medium text-sm">
                     Total Scheduled
                     {scheduleTotalIDR !== expectedRemainingIDR && (
-                      <span className="ml-2 text-xs text-yellow-400" title="Schedule total doesn't match expected 50%">
-                        ⚠️ Expected: {symbol} {formatNumber(expectedRemainingDisplay)}
+                      <span className="ml-2 text-xs text-warning" title="Schedule total doesn't match expected 50%">
+                        Expected: {symbol} {formatNumber(expectedRemainingDisplay)}
                       </span>
                     )}
                   </div>
                   <div className="col-span-6 text-right">
-                    <span className={`font-mono font-bold ${scheduleTotalIDR === expectedRemainingIDR ? 'text-primary' : 'text-yellow-400'}`}>
+                    <span className={`font-mono font-bold ${scheduleTotalIDR === expectedRemainingIDR ? 'text-primary' : 'text-warning'}`}>
                       {symbol} {formatNumber(scheduleTotalDisplay)}
                     </span>
                   </div>
@@ -252,9 +241,9 @@ export function PaymentTerms({
 
       {/* Full Payment Details */}
       {data.type === 'full' && (
-        <div className="p-4 rounded-lg bg-surface-dark/30 border border-border-dark/50">
+        <div className="p-4 rounded-lg bg-surface-alt border border-border">
           <div className="text-sm text-text-secondary mb-2">Total Due Upon Signing</div>
-          <div className="text-3xl font-mono text-white">
+          <div className="text-3xl font-mono text-text-primary">
             {symbol} {formatDisplay(totalPriceIDR)}
           </div>
           <p className="text-sm text-text-secondary mt-2">Full payment required at contract signing.</p>
@@ -262,14 +251,14 @@ export function PaymentTerms({
       )}
 
       {/* Booking Fee Section */}
-      <div className="mt-8 pt-6 border-t border-border-dark">
+      <div className="mt-8 pt-6 border-t border-border">
         <label className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-primary text-lg">receipt_long</span>
             <span className="text-sm font-medium text-text-secondary">Booking Fee (Optional)</span>
           </div>
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-mono">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted font-mono">
               {symbol}
             </span>
             <input
@@ -281,10 +270,10 @@ export function PaymentTerms({
                 onUpdate('bookingFee', idrValue);
               }}
               placeholder="0"
-              className="w-full rounded-lg bg-surface-dark border border-border-dark px-4 py-3 pl-12 text-white font-mono placeholder:text-text-secondary/50 focus:border-primary focus:outline-none"
+              className="w-full rounded-lg bg-surface-alt border border-border px-4 py-3 pl-12 text-text-primary font-mono placeholder:text-text-muted focus:border-primary focus:outline-none"
             />
           </div>
-          <p className="text-xs text-text-secondary/70">
+          <p className="text-xs text-text-muted">
             Initial fee paid to secure the property. Usually refundable or deducted from total price.
           </p>
         </label>

@@ -77,26 +77,51 @@ export function generatePaymentSchedule(data: InvestmentData): CashFlow[] {
   } else {
     // Payment plan
     const downPayment = property.totalPrice * (payment.downPaymentPercent / 100);
-    const remaining = property.totalPrice - downPayment;
-    const monthlyPayment = remaining / payment.installmentMonths;
-    
-    // Down payment today
+
+    // Down payment: use purchase date if available, otherwise today
+    const downPaymentDate = property.purchaseDate ? new Date(property.purchaseDate) : today;
     cashFlows.push({
-      date: today,
+      date: downPaymentDate,
       amount: -downPayment
     });
-    
-    // Monthly installments
-    for (let i = 1; i <= payment.installmentMonths; i++) {
-      const paymentDate = new Date(today);
-      paymentDate.setMonth(paymentDate.getMonth() + i);
-      
-      // Don't exceed handover date
-      if (paymentDate <= handoverDate) {
+
+    // Use stored schedule if available (has correct remainder adjustment)
+    if (payment.schedule && payment.schedule.length > 0) {
+      payment.schedule.forEach((entry) => {
         cashFlows.push({
-          date: paymentDate,
-          amount: -monthlyPayment
+          date: new Date(entry.date),
+          amount: -entry.amount
         });
+      });
+    } else {
+      // Fallback: calculate schedule dynamically
+      const remaining = property.totalPrice - downPayment;
+      const baseMonthlyPayment = Math.floor(remaining / payment.installmentMonths);
+      const remainder = remaining - (baseMonthlyPayment * payment.installmentMonths);
+
+      for (let i = 1; i <= payment.installmentMonths; i++) {
+        const paymentDate = new Date(today);
+        paymentDate.setMonth(paymentDate.getMonth() + i);
+
+        // Don't exceed handover date
+        if (paymentDate <= handoverDate) {
+          const isLastInstallment = i === payment.installmentMonths ||
+            (i < payment.installmentMonths && (() => {
+              const nextDate = new Date(today);
+              nextDate.setMonth(nextDate.getMonth() + i + 1);
+              return nextDate > handoverDate;
+            })());
+
+          // Add remainder to the last installment
+          const amount = isLastInstallment
+            ? baseMonthlyPayment + remainder
+            : baseMonthlyPayment;
+
+          cashFlows.push({
+            date: paymentDate,
+            amount: -amount
+          });
+        }
       }
     }
   }

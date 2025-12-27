@@ -32,12 +32,12 @@ export function PropertyDetails({ data, symbol, rate, displayPrice, onUpdate, on
   };
 
   return (
-    <section className="rounded-xl border border-border-dark bg-[#102216] p-6 shadow-sm">
-      <div className="mb-6 flex items-center gap-2 border-b border-border-dark pb-4">
+    <section className="rounded-xl border border-border bg-surface p-6 shadow-sm">
+      <div className="mb-6 flex items-center gap-2 border-b border-border pb-4">
         <span className="material-symbols-outlined text-primary">villa</span>
-        <h2 className="text-xl font-bold text-white">Property Details</h2>
+        <h2 className="text-xl font-bold text-text-primary">Property Details</h2>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Project Name */}
         <label className="flex flex-col gap-2">
@@ -47,7 +47,7 @@ export function PropertyDetails({ data, symbol, rate, displayPrice, onUpdate, on
             value={data.projectName}
             onChange={(e) => onUpdate('projectName', e.target.value)}
             placeholder="e.g., Villa Matahari Phase 1"
-            className="w-full rounded-lg bg-surface-dark border border-border-dark px-4 py-3 text-white placeholder:text-text-secondary/50 focus:border-primary focus:outline-none"
+            className="w-full rounded-lg bg-surface-alt border border-border px-4 py-3 text-text-primary placeholder:text-text-muted focus:border-primary focus:outline-none"
           />
         </label>
 
@@ -55,7 +55,7 @@ export function PropertyDetails({ data, symbol, rate, displayPrice, onUpdate, on
         <label className="flex flex-col gap-2">
           <span className="text-sm font-medium text-text-secondary">Location (Region)</span>
           <div className="relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-lg">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-lg">
               location_on
             </span>
             <input
@@ -64,7 +64,7 @@ export function PropertyDetails({ data, symbol, rate, displayPrice, onUpdate, on
               value={data.location}
               onChange={(e) => onUpdate('location', e.target.value)}
               placeholder="e.g., Canggu, Bali"
-              className="w-full rounded-lg bg-surface-dark border border-border-dark px-4 py-3 pl-10 text-white placeholder:text-text-secondary/50 focus:border-primary focus:outline-none"
+              className="w-full rounded-lg bg-surface-alt border border-border px-4 py-3 pl-10 text-text-primary placeholder:text-text-muted focus:border-primary focus:outline-none"
             />
             <datalist id="locations">
               {LOCATIONS.map(loc => <option key={loc} value={loc} />)}
@@ -76,7 +76,7 @@ export function PropertyDetails({ data, symbol, rate, displayPrice, onUpdate, on
         <label className="flex flex-col gap-2">
           <span className="text-sm font-medium text-text-secondary">Total Price</span>
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-mono">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted font-mono">
               {symbol}
             </span>
             <input
@@ -84,7 +84,7 @@ export function PropertyDetails({ data, symbol, rate, displayPrice, onUpdate, on
               value={displayPrice > 0 ? formatNumber(displayPrice) : ''}
               onChange={(e) => onPriceChange(parseInput(e.target.value))}
               placeholder="3,500,000,000"
-              className="w-full rounded-lg bg-surface-dark border border-border-dark px-4 py-3 pl-12 text-white font-mono text-lg placeholder:text-text-secondary/50 focus:border-primary focus:outline-none"
+              className="w-full rounded-lg bg-surface-alt border border-border px-4 py-3 pl-12 text-text-primary font-mono text-lg placeholder:text-text-muted focus:border-primary focus:outline-none"
             />
           </div>
         </label>
@@ -98,9 +98,9 @@ export function PropertyDetails({ data, symbol, rate, displayPrice, onUpdate, on
               value={data.propertySize > 0 ? formatNumber(data.propertySize) : ''}
               onChange={(e) => onUpdate('propertySize', parseInput(e.target.value))}
               placeholder="100"
-              className="w-full rounded-lg bg-surface-dark border border-border-dark px-4 py-3 pr-12 text-white font-mono placeholder:text-text-secondary/50 focus:border-primary focus:outline-none"
+              className="w-full rounded-lg bg-surface-alt border border-border px-4 py-3 pr-12 text-text-primary font-mono placeholder:text-text-muted focus:border-primary focus:outline-none"
             />
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary">
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted">
               m²
             </span>
           </div>
@@ -118,7 +118,7 @@ export function PropertyDetails({ data, symbol, rate, displayPrice, onUpdate, on
             type="date"
             value={data.purchaseDate}
             onChange={(e) => onUpdate('purchaseDate', e.target.value)}
-            className="w-full rounded-lg bg-surface-dark border border-border-dark px-4 py-3 text-white focus:border-primary focus:outline-none h-[54px]"
+            className="w-full rounded-lg bg-surface-alt border border-border px-4 py-3 text-text-primary focus:border-primary focus:outline-none h-[54px]"
           />
         </label>
 
@@ -129,7 +129,7 @@ export function PropertyDetails({ data, symbol, rate, displayPrice, onUpdate, on
             type="date"
             value={data.handoverDate}
             onChange={(e) => onUpdate('handoverDate', e.target.value)}
-            className="w-full rounded-lg bg-surface-dark border border-border-dark px-4 py-3 text-white focus:border-primary focus:outline-none h-[54px]"
+            className="w-full rounded-lg bg-surface-alt border border-border px-4 py-3 text-text-primary focus:border-primary focus:outline-none h-[54px]"
           />
         </label>
 
@@ -147,18 +147,18 @@ export function PropertyDetails({ data, symbol, rate, displayPrice, onUpdate, on
             <select
               value={data.currency}
               onChange={(e) => onUpdate('currency', e.target.value as 'IDR' | 'USD' | 'AUD' | 'EUR')}
-              className="w-full rounded-lg bg-surface-dark border border-border-dark px-4 py-3 text-white focus:border-primary focus:outline-none appearance-none"
+              className="w-full rounded-lg bg-surface-alt border border-border px-4 py-3 text-text-primary focus:border-primary focus:outline-none appearance-none"
             >
               <option value="IDR">IDR - Indonesian Rupiah</option>
               <option value="USD">USD - US Dollar</option>
               <option value="AUD">AUD - Australian Dollar</option>
               <option value="EUR">EUR - Euro</option>
             </select>
-            <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none">
+            <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
               expand_more
             </span>
           </div>
-          <p className="text-xs text-text-secondary/70">
+          <p className="text-xs text-text-muted">
             Currency only changes display. All calculations use IDR internally.
           </p>
         </label>
