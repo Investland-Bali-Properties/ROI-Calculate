@@ -64,24 +64,30 @@ export function calculateXIRR(cashFlows: CashFlow[], guess: number = 0.1): numbe
 export function generatePaymentSchedule(data: InvestmentData): CashFlow[] {
   const cashFlows: CashFlow[] = [];
   const { property, payment, exit, additionalCashFlows } = data;
-  
-  const today = new Date();
-  const handoverDate = new Date(property.handoverDate);
-  
+
+  // Use purchase date if set, otherwise fall back to today
+  const purchaseDate = property.purchaseDate
+    ? new Date(property.purchaseDate)
+    : new Date();
+
+  // Use handover date if set, otherwise fall back to purchase date
+  const handoverDate = property.handoverDate
+    ? new Date(property.handoverDate)
+    : purchaseDate;
+
   if (payment.type === 'full') {
-    // Full payment upfront
+    // Full payment upfront on purchase date
     cashFlows.push({
-      date: today,
+      date: purchaseDate,
       amount: -property.totalPrice
     });
   } else {
     // Payment plan
     const downPayment = property.totalPrice * (payment.downPaymentPercent / 100);
 
-    // Down payment: use purchase date if available, otherwise today
-    const downPaymentDate = property.purchaseDate ? new Date(property.purchaseDate) : today;
+    // Down payment on purchase date
     cashFlows.push({
-      date: downPaymentDate,
+      date: purchaseDate,
       amount: -downPayment
     });
 
@@ -94,20 +100,20 @@ export function generatePaymentSchedule(data: InvestmentData): CashFlow[] {
         });
       });
     } else {
-      // Fallback: calculate schedule dynamically
+      // Fallback: calculate schedule dynamically from purchase date
       const remaining = property.totalPrice - downPayment;
       const baseMonthlyPayment = Math.floor(remaining / payment.installmentMonths);
       const remainder = remaining - (baseMonthlyPayment * payment.installmentMonths);
 
       for (let i = 1; i <= payment.installmentMonths; i++) {
-        const paymentDate = new Date(today);
+        const paymentDate = new Date(purchaseDate);
         paymentDate.setMonth(paymentDate.getMonth() + i);
 
         // Don't exceed handover date
         if (paymentDate <= handoverDate) {
           const isLastInstallment = i === payment.installmentMonths ||
             (i < payment.installmentMonths && (() => {
-              const nextDate = new Date(today);
+              const nextDate = new Date(purchaseDate);
               nextDate.setMonth(nextDate.getMonth() + i + 1);
               return nextDate > handoverDate;
             })());
