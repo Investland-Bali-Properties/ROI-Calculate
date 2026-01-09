@@ -193,7 +193,8 @@ function App() {
                 displayExitPrice={displayExitPrice}
                 symbol={symbol}
                 handoverDate={data.property.handoverDate}
-                formatDisplay={formatDisplay}
+                displayToIdr={displayToIdr}
+                idrToDisplay={idrToDisplay}
                 onUpdate={updateExit}
                 onExitPriceChange={updateExitPriceFromDisplay}
               />

@@ -6,7 +6,8 @@ interface Props {
   displayExitPrice: number;
   symbol: string;
   handoverDate: string;
-  formatDisplay: (idr: number) => string;
+  displayToIdr: (display: number) => number;
+  idrToDisplay: (idr: number) => number;
   onUpdate: <K extends keyof ExitStrategyData>(key: K, value: ExitStrategyData[K]) => void;
   onExitPriceChange: (displayValue: number) => void;
 }
@@ -17,11 +18,13 @@ export function ExitStrategySection({
   displayExitPrice,
   symbol,
   handoverDate,
-  formatDisplay,
+  displayToIdr,
+  idrToDisplay,
   onUpdate,
   onExitPriceChange,
 }: Props) {
   const closingCostIDR = data.projectedSalesPrice * (data.closingCostPercent / 100);
+  const closingCostDisplay = idrToDisplay(closingCostIDR);
 
   const appreciation =
     totalPriceIDR > 0
@@ -35,6 +38,17 @@ export function ExitStrategySection({
 
   const formatNumber = (num: number): string => {
     return num.toLocaleString('en-US');
+  };
+
+  // Handle closing cost currency input - convert to percentage
+  const handleClosingCostAmountChange = (displayValue: number) => {
+    if (data.projectedSalesPrice > 0) {
+      const idrValue = displayToIdr(displayValue);
+      const newPercent = (idrValue / data.projectedSalesPrice) * 100;
+      // Clamp to reasonable range and round to 2 decimals
+      const clampedPercent = Math.min(20, Math.max(0, Math.round(newPercent * 100) / 100));
+      onUpdate('closingCostPercent', clampedPercent);
+    }
   };
 
   const formattedHandoverDate = handoverDate
@@ -111,8 +125,17 @@ export function ExitStrategySection({
               <span className="text-text-muted font-mono">%</span>
             </div>
             <span className="text-text-muted">=</span>
-            <div className="flex-grow rounded-lg bg-surface-alt border border-border px-4 py-3 text-text-primary font-mono">
-              {symbol} {formatDisplay(closingCostIDR)}
+            <div className="flex-grow relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted font-mono">
+                {symbol}
+              </span>
+              <input
+                type="text"
+                value={closingCostDisplay > 0 ? formatNumber(closingCostDisplay) : ''}
+                onChange={(e) => handleClosingCostAmountChange(parseInput(e.target.value))}
+                placeholder="0"
+                className="w-full rounded-lg bg-surface-alt border border-border px-4 py-3 pl-12 text-text-primary font-mono focus:border-primary focus:outline-none"
+              />
             </div>
           </div>
         </label>
