@@ -1,6 +1,6 @@
 
-import { useState, useEffect } from 'react';
-import type { Assumptions, CurrencyConfig } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Assumptions, CurrencyConfig } from '../types';
 
 interface Props {
   assumptions: Assumptions;
@@ -28,14 +28,17 @@ const TopInputsPanel: React.FC<Props> = ({ assumptions, onChange, currency }) =>
         <section className="space-y-6">
           <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Core Investment</h3>
           <div className="grid grid-cols-1 gap-6">
-            <TopInputGroup
-              label={`Initial Capex (${currency.code})`}
-              value={assumptions.initialInvestment}
-              onChange={(v) => handleChange('initialInvestment', v)}
+            <TopInputGroup 
+              label={`Initial Capex (${currency.code})`} 
+              value={assumptions.initialInvestment} 
+              onChange={(v) => handleChange('initialInvestment', v)} 
               currency={currency}
               icon={currency.symbol}
             />
-            <TopInputGroup label="Start Year" value={assumptions.baseYear} onChange={(v) => handleChange('baseYear', v)} noSeparator active />
+            <div className="grid grid-cols-2 gap-4">
+              <TopInputGroup label="Units" value={assumptions.keys} onChange={(v) => handleChange('keys', v)} noSeparator />
+              <TopInputGroup label="Start Year" value={assumptions.baseYear} onChange={(v) => handleChange('baseYear', v)} noSeparator active />
+            </div>
           </div>
         </section>
 
