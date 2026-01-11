@@ -5,7 +5,22 @@ import type { CashFlow, InvestmentData, XIRRResult, CashFlowEntry } from '../typ
  * XIRR = Internal Rate of Return for irregular cash flows
  */
 export function calculateXIRR(cashFlows: CashFlow[], guess: number = 0.1): number {
-  if (cashFlows.length < 2) return 0;
+  if (cashFlows.length < 2) {
+    return 0;
+  }
+
+  // Check if all amounts are zero or negligible
+  const totalAbsAmount = cashFlows.reduce((sum, cf) => sum + Math.abs(cf.amount), 0);
+  if (totalAbsAmount < 1) {
+    return 0;
+  }
+
+  // Check if there are both inflows and outflows
+  const hasInflow = cashFlows.some(cf => cf.amount > 0);
+  const hasOutflow = cashFlows.some(cf => cf.amount < 0);
+  if (!hasInflow || !hasOutflow) {
+    return 0;
+  }
   
   const maxIterations = 100;
   const tolerance = 1e-7;
@@ -77,27 +92,35 @@ export function generatePaymentSchedule(data: InvestmentData): CashFlow[] {
 
   if (payment.type === 'full') {
     // Full payment upfront on purchase date
-    cashFlows.push({
-      date: purchaseDate,
-      amount: -property.totalPrice
-    });
+    if (property.totalPrice > 0) {
+      cashFlows.push({
+        date: purchaseDate,
+        amount: -property.totalPrice
+      });
+    }
   } else {
     // Payment plan
     const downPayment = property.totalPrice * (payment.downPaymentPercent / 100);
 
-    // Down payment on purchase date
-    cashFlows.push({
-      date: purchaseDate,
-      amount: -downPayment
-    });
+    // Down payment on purchase date (only if positive)
+    if (downPayment > 0) {
+      cashFlows.push({
+        date: purchaseDate,
+        amount: -downPayment
+      });
+    }
 
     // Use stored schedule if available (has correct remainder adjustment)
     if (payment.schedule && payment.schedule.length > 0) {
       payment.schedule.forEach((entry) => {
-        cashFlows.push({
-          date: new Date(entry.date),
-          amount: -entry.amount
-        });
+        const entryDate = new Date(entry.date);
+        // Only add if date is valid and amount is non-zero
+        if (!isNaN(entryDate.getTime()) && entry.amount > 0) {
+          cashFlows.push({
+            date: entryDate,
+            amount: -entry.amount
+          });
+        }
       });
     } else {
       // Fallback: calculate schedule dynamically from purchase date
@@ -134,19 +157,29 @@ export function generatePaymentSchedule(data: InvestmentData): CashFlow[] {
   
   // Add additional cash flows (furniture, rental income, etc.)
   additionalCashFlows.forEach((cf: CashFlowEntry) => {
-    cashFlows.push({
-      date: new Date(cf.date),
-      amount: cf.type === 'inflow' ? cf.amount : -cf.amount
-    });
+    const cfDate = new Date(cf.date);
+    const cfAmount = cf.type === 'inflow' ? cf.amount : -cf.amount;
+    // Only add if date is valid and amount is non-zero
+    if (!isNaN(cfDate.getTime()) && cf.amount > 0) {
+      cashFlows.push({
+        date: cfDate,
+        amount: cfAmount
+      });
+    }
   });
-  
+
   // Exit: Sale at sale date + closing costs
   const closingCosts = exit.projectedSalesPrice * (exit.closingCostPercent / 100);
   const saleDate = exit.saleDate ? new Date(exit.saleDate) : handoverDate;
-  cashFlows.push({
-    date: saleDate,
-    amount: exit.projectedSalesPrice - closingCosts
-  });
+  const saleProceeds = exit.projectedSalesPrice - closingCosts;
+
+  // Only add sale if there's a valid date and positive proceeds
+  if (!isNaN(saleDate.getTime()) && saleProceeds > 0) {
+    cashFlows.push({
+      date: saleDate,
+      amount: saleProceeds
+    });
+  }
   
   return cashFlows.sort((a, b) => a.date.getTime() - b.date.getTime());
 }
@@ -170,12 +203,23 @@ export function calculateInvestmentReturn(data: InvestmentData): XIRRResult {
   // Calculate hold period
   const firstDate = cashFlows[0]?.date || new Date();
   const lastDate = cashFlows[cashFlows.length - 1]?.date || new Date();
-  const holdPeriodMonths = Math.round(
-    (lastDate.getTime() - firstDate.getTime()) / (30 * 24 * 60 * 60 * 1000)
-  );
-  
+
+  // Validate dates
+  const firstTime = firstDate.getTime();
+  const lastTime = lastDate.getTime();
+  let holdPeriodMonths = 0;
+
+  if (!isNaN(firstTime) && !isNaN(lastTime) && lastTime > firstTime) {
+    holdPeriodMonths = Math.round((lastTime - firstTime) / (30 * 24 * 60 * 60 * 1000));
+  }
+
+  // Clamp rate to reasonable bounds (-100% to 1000%)
+  let finalRate = isNaN(rate) ? 0 : rate;
+  if (finalRate < -1) finalRate = -1;
+  if (finalRate > 10) finalRate = 10;
+
   return {
-    rate: isNaN(rate) ? 0 : rate,
+    rate: finalRate,
     totalInvested,
     netProfit,
     holdPeriodMonths
