@@ -50,6 +50,7 @@ export function RentalROICalculator() {
 
   const [isSaving, setIsSaving] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetKey, setResetKey] = useState(0);
 
   const handleSaveDraft = useCallback(() => {
     setIsSaving(true);
@@ -66,6 +67,7 @@ export function RentalROICalculator() {
     if (showResetConfirm) {
       setAssumptions(EMPTY_ASSUMPTIONS);
       localStorage.removeItem(DRAFT_STORAGE_KEY);
+      setResetKey(k => k + 1);
       setShowResetConfirm(false);
     } else {
       setShowResetConfirm(true);
@@ -175,11 +177,11 @@ export function RentalROICalculator() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Main Content - Left Side */}
           <div className="lg:col-span-9 space-y-6">
-            <TopInputsPanel assumptions={assumptions} onChange={setAssumptions} currency={currency} />
+            <TopInputsPanel key={resetKey} assumptions={assumptions} onChange={setAssumptions} currency={currency} />
 
             <ProjectionsTable data={data} avg={averages} currency={currency} />
 
-            <AssumptionsPanel assumptions={assumptions} onChange={setAssumptions} currency={currency} />
+            <AssumptionsPanel key={`assumptions-${resetKey}`} assumptions={assumptions} onChange={setAssumptions} currency={currency} />
 
             <div className="flex flex-col items-center justify-center pt-8 pb-20 border-t border-slate-200 mt-12">
               <button
