@@ -580,6 +580,13 @@ export function generatePDFReport(options: PDFExportOptions): void {
   let outflowRunningSum = 0;
   let runningNetFlow = 0;
   let installmentNum = 0;
+  let downPaymentFound = false;
+
+  // Identify booking fee amount for matching
+  const bookingFeeIDR = data.payment.bookingFee;
+  const bookingFeeDate = data.payment.bookingFeeDate
+    ? new Date(data.payment.bookingFeeDate)
+    : null;
 
   outflows.forEach((cf, i) => {
     const isLast = i === outflows.length - 1;
@@ -589,9 +596,19 @@ export function generatePDFReport(options: PDFExportOptions): void {
 
     if (!isLast) outflowRunningSum += displayAmount;
 
+    // Determine event type based on amount and date matching
     let event: string;
-    if (i === 0) {
+    const cfAmount = Math.abs(cf.amount);
+    const isBookingFee = bookingFeeIDR > 0 &&
+      Math.abs(cfAmount - bookingFeeIDR) < 1 &&
+      (!bookingFeeDate || cf.date.getTime() === bookingFeeDate.getTime() ||
+       (bookingFeeDate && cf.date.toDateString() === bookingFeeDate.toDateString()));
+
+    if (isBookingFee && !downPaymentFound) {
+      event = 'Booking Fee';
+    } else if (!downPaymentFound) {
       event = 'Down Payment';
+      downPaymentFound = true;
     } else {
       installmentNum++;
       event = `Installment ${installmentNum}`;
