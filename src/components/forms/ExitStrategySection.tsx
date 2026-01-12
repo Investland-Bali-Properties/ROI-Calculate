@@ -6,6 +6,7 @@ interface Props {
   displayExitPrice: number;
   symbol: string;
   handoverDate: string;
+  propertySize: number;
   displayToIdr: (display: number) => number;
   idrToDisplay: (idr: number) => number;
   onUpdate: <K extends keyof ExitStrategyData>(key: K, value: ExitStrategyData[K]) => void;
@@ -18,6 +19,7 @@ export function ExitStrategySection({
   displayExitPrice,
   symbol,
   handoverDate,
+  propertySize,
   displayToIdr,
   idrToDisplay,
   onUpdate,
@@ -164,6 +166,46 @@ export function ExitStrategySection({
             </button>
           );
         })}
+      </div>
+
+      {/* Summary Cards */}
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="p-4 rounded-lg bg-surface-alt border border-border">
+          <span className="text-xs text-text-muted">Gross Sale Price</span>
+          <div className="text-xl font-mono text-accent font-bold mt-1">
+            {symbol} {formatNumber(idrToDisplay(data.projectedSalesPrice))}
+          </div>
+        </div>
+
+        <div className="p-4 rounded-lg bg-surface-alt border border-border">
+          <span className="text-xs text-text-muted">Closing Costs</span>
+          <div className="text-xl font-mono text-text-primary font-bold mt-1">
+            {symbol} {formatNumber(closingCostDisplay)}
+          </div>
+          <span className="text-xs text-text-muted">{data.closingCostPercent}% Total Expenses</span>
+        </div>
+
+        <div className="p-4 rounded-lg bg-surface-alt border border-border">
+          <span className="text-xs text-text-muted">New Price / sqm</span>
+          <div className="text-xl font-mono text-primary font-bold mt-1">
+            {propertySize > 0
+              ? `${symbol} ${formatNumber(idrToDisplay(data.projectedSalesPrice / propertySize))}`
+              : 'Set property size'}
+          </div>
+          {propertySize > 0 && (
+            <span className="text-xs text-text-muted">per square meter</span>
+          )}
+        </div>
+      </div>
+
+      {/* Net Proceeds */}
+      <div className="mt-4 p-4 rounded-lg bg-accent-light border border-accent/20">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-accent">Net Proceeds from Sale</span>
+          <span className="text-2xl font-mono font-bold text-accent">
+            {symbol} {formatNumber(idrToDisplay(data.projectedSalesPrice - closingCostIDR))}
+          </span>
+        </div>
       </div>
     </section>
   );
