@@ -14,7 +14,7 @@ export function ProjectForecast({ result, symbol, formatDisplay, onExportPDF, is
   const isPositive = result.rate >= 0;
 
   return (
-    <div className="sticky top-28 flex flex-col gap-6">
+    <div className="sticky top-36 flex flex-col gap-6">
       {/* Main Card */}
       <div className="rounded-xl border border-border bg-surface p-6 shadow-lg">
         <h3 className="mb-4 text-lg font-bold text-text-primary">Project Forecast</h3>
