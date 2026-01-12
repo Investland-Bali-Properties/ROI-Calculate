@@ -10,6 +10,7 @@ interface Props {
   onUpdate: <K extends keyof PaymentTermsType>(key: K, value: PaymentTermsType[K]) => void;
   onRegenerateSchedule: (newMonths?: number) => void;
   onUpdateScheduleEntry: (id: string, updates: Partial<Pick<PaymentScheduleEntry, 'date' | 'amount'>>) => void;
+  isPaymentValid?: boolean;
 }
 
 export function PaymentTerms({
@@ -21,7 +22,8 @@ export function PaymentTerms({
   idrToDisplay,
   onUpdate,
   onRegenerateSchedule,
-  onUpdateScheduleEntry
+  onUpdateScheduleEntry,
+  isPaymentValid = true
 }: Props) {
   const downPaymentPercent = data.downPaymentPercent;
   const downPaymentIDR = totalPriceIDR * (downPaymentPercent / 100);
@@ -326,6 +328,22 @@ export function PaymentTerms({
           Initial fee paid to secure the property. Usually refundable or deducted from total price.
         </p>
       </div>
+
+      {/* Payment Validation Error */}
+      {!isPaymentValid && data.type === 'plan' && totalPriceIDR > 0 && (
+        <div className="mt-6 p-4 rounded-lg bg-red-50 border border-red-200">
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-red-500">error</span>
+            <div>
+              <p className="text-sm font-medium text-red-700">Payment amounts don't match total price</p>
+              <p className="text-xs text-red-600 mt-1">
+                Down payment ({downPaymentPercent}%) + scheduled payments must equal the total property price.
+                Adjust the schedule or regenerate it to fix this.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

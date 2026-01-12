@@ -103,6 +103,12 @@ export function XIRRCalculator() {
   const displayPrice = idrToDisplay(data.property.totalPrice);
   const displayExitPrice = idrToDisplay(data.exit.projectedSalesPrice);
 
+  // Validate that down payment + scheduled payments = total price
+  const downPaymentIDR = data.property.totalPrice * (data.payment.downPaymentPercent / 100);
+  const scheduleTotalIDR = data.payment.schedule.reduce((sum, entry) => sum + entry.amount, 0);
+  const totalPaymentsIDR = downPaymentIDR + scheduleTotalIDR;
+  const isPaymentValid = data.property.totalPrice === 0 || Math.abs(totalPaymentsIDR - data.property.totalPrice) < 1;
+
   return (
     <div className="min-h-screen bg-background text-text-primary selection:bg-primary-light selection:text-primary -mx-4 md:-mx-10 lg:-mx-20 -my-8 px-6 py-8">
       {toast && (
@@ -224,6 +230,7 @@ export function XIRRCalculator() {
               onUpdate={updatePayment}
               onRegenerateSchedule={regenerateSchedule}
               onUpdateScheduleEntry={updateScheduleEntry}
+              isPaymentValid={isPaymentValid}
             />
 
             <ExitStrategySection
@@ -245,6 +252,7 @@ export function XIRRCalculator() {
               symbol={symbol}
               formatDisplay={formatDisplay}
               onExportPDF={handleExportPDF}
+              isPaymentValid={isPaymentValid}
             />
           </div>
         </div>
