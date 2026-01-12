@@ -9,8 +9,8 @@ import {
 } from '../../components';
 import { Toast } from '../../components/ui/Toast';
 import { DraftSelector } from '../../components/ui/DraftSelector';
-import { AuthModal, type User } from '../../components/ui/AuthModal';
-import { generatePDFReport } from '../../utils/pdfExport';
+import { type User } from '../../components/ui/AuthModal';
+import { ReportView } from './components/ReportView';
 import type { InvestmentData } from '../../types/investment';
 
 export function XIRRCalculator() {
@@ -46,8 +46,7 @@ export function XIRRCalculator() {
   const [isSaving, setIsSaving] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  const [showAuth, setShowAuth] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
+  const [showReportView, setShowReportView] = useState(false);
 
   const handleSaveDraft = useCallback(() => {
     setIsSaving(true);
@@ -111,43 +110,13 @@ export function XIRRCalculator() {
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  const exportPDF = useCallback(() => {
-    setIsExporting(true);
-    try {
-      generatePDFReport({
-        data: dataRef.current,
-        result: resultRef.current,
-        currency: currencyRef.current,
-        symbol: symbolRef.current,
-        formatDisplay: formatDisplayRef.current,
-        formatAbbrev: formatAbbrevRef.current,
-        rate: rateRef.current,
-      });
-      setToast({ message: 'PDF exported successfully!', type: 'success' });
-    } catch (error) {
-      console.error('PDF export error:', error);
-      setToast({ message: 'Failed to export PDF', type: 'error' });
-    } finally {
-      setTimeout(() => setIsExporting(false), 500);
-    }
+  const handleExportPDF = useCallback(() => {
+    setShowReportView(true);
   }, []);
 
-  const handleExportPDF = useCallback(() => {
-    if (!user) {
-      setShowAuth(true);
-    } else {
-      exportPDF();
-    }
-  }, [user, exportPDF]);
-
-  const handleAuthSuccess = useCallback((u: User) => {
+  const handleLoginFromReport = useCallback((u: User) => {
     setUser(u);
-    setShowAuth(false);
-    // Automatically trigger PDF export after auth success
-    setTimeout(() => {
-      exportPDF();
-    }, 500);
-  }, [exportPDF]);
+  }, []);
 
   const displayPrice = idrToDisplay(data.property.totalPrice);
   const displayExitPrice = idrToDisplay(data.exit.projectedSalesPrice);
@@ -158,13 +127,26 @@ export function XIRRCalculator() {
   const totalPaymentsIDR = downPaymentIDR + scheduleTotalIDR;
   const isPaymentValid = data.property.totalPrice === 0 || Math.abs(totalPaymentsIDR - data.property.totalPrice) < 1;
 
+  // Show Report View
+  if (showReportView) {
+    return (
+      <ReportView
+        data={data}
+        result={result}
+        currency={currency}
+        symbol={symbol}
+        rate={rate}
+        formatDisplay={formatDisplay}
+        formatAbbrev={formatAbbrev}
+        user={user}
+        onLogin={handleLoginFromReport}
+        onBack={() => setShowReportView(false)}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background text-text-primary selection:bg-primary-light selection:text-primary -mx-4 md:-mx-10 lg:-mx-20 -my-8 px-6 py-8">
-      <AuthModal
-        isOpen={showAuth}
-        onClose={() => setShowAuth(false)}
-        onSuccess={handleAuthSuccess}
-      />
       {toast && (
         <Toast
           message={toast.message}
@@ -314,7 +296,6 @@ export function XIRRCalculator() {
               formatDisplay={formatDisplay}
               onExportPDF={handleExportPDF}
               isPaymentValid={isPaymentValid}
-              isExporting={isExporting}
             />
           </div>
         </div>
