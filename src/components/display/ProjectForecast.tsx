@@ -61,7 +61,7 @@ export function ProjectForecast({ result, symbol, formatDisplay, onExportPDF, is
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <span className="text-sm text-text-secondary">Investment Period</span>
-              <Tooltip text="Time from your first payment (purchase date) until the projected sale date." />
+              <Tooltip text="Time from your first payment date until the projected sale date." />
             </div>
             <span className="text-sm text-text-primary">{result.holdPeriodMonths} Months</span>
           </div>
