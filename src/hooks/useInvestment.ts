@@ -237,10 +237,25 @@ export function useInvestment() {
     key: K,
     value: InvestmentData['payment'][K]
   ) => {
-    setData(prev => ({
-      ...prev,
-      payment: { ...prev.payment, [key]: value }
-    }));
+    setData(prev => {
+      // When down payment percent changes, regenerate the schedule
+      if (key === 'downPaymentPercent' && typeof value === 'number') {
+        const newSchedule = createSchedule(
+          prev.property.totalPrice,
+          value,
+          prev.payment.installmentMonths,
+          prev.property.purchaseDate
+        );
+        return {
+          ...prev,
+          payment: { ...prev.payment, downPaymentPercent: value, schedule: newSchedule }
+        };
+      }
+      return {
+        ...prev,
+        payment: { ...prev.payment, [key]: value }
+      };
+    });
   }, []);
 
   // Generate payment schedule based on current settings

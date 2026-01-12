@@ -23,8 +23,8 @@ export function PaymentTerms({
   onRegenerateSchedule,
   onUpdateScheduleEntry
 }: Props) {
-  const DOWN_PAYMENT_PERCENT = 50;
-  const downPaymentIDR = totalPriceIDR * (DOWN_PAYMENT_PERCENT / 100);
+  const downPaymentPercent = data.downPaymentPercent;
+  const downPaymentIDR = totalPriceIDR * (downPaymentPercent / 100);
 
   const hasSchedule = data.schedule && data.schedule.length > 0;
   const scheduleTotalIDR = hasSchedule
@@ -32,7 +32,7 @@ export function PaymentTerms({
     : 0;
   const scheduleTotalDisplay = idrToDisplay(scheduleTotalIDR);
 
-  const expectedRemainingIDR = totalPriceIDR * (1 - DOWN_PAYMENT_PERCENT / 100);
+  const expectedRemainingIDR = totalPriceIDR * (1 - downPaymentPercent / 100);
   const expectedRemainingDisplay = idrToDisplay(expectedRemainingIDR);
 
   const parseAmountInput = (value: string): number => {
@@ -98,21 +98,57 @@ export function PaymentTerms({
           {/* Down Payment Section */}
           <div>
             <div className="text-sm text-text-secondary mb-2">
-              Down Payment ({DOWN_PAYMENT_PERCENT}%)
-            </div>
-            <div className="text-3xl font-mono text-text-primary mb-1">
-              {symbol} {formatDisplay(downPaymentIDR)}
+              Down Payment ({downPaymentPercent}%)
             </div>
 
-            {/* Progress Bar */}
-            <div className="flex items-center gap-4 mt-4 mb-2">
-              <div className="flex-1 h-3 bg-border-light rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-primary rounded-full"
-                  style={{ width: `${DOWN_PAYMENT_PERCENT}%` }}
-                />
-              </div>
-              <span className="text-primary font-bold">{DOWN_PAYMENT_PERCENT}%</span>
+            {/* Amount Input */}
+            <div className="relative mb-4">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted font-mono">
+                {symbol}
+              </span>
+              <input
+                type="text"
+                value={totalPriceIDR > 0 ? formatNumber(idrToDisplay(downPaymentIDR)) : ''}
+                onChange={(e) => {
+                  const displayValue = parseAmountInput(e.target.value);
+                  if (totalPriceIDR > 0) {
+                    const newPercent = Math.min(100, Math.max(0, Math.round((displayToIdr(displayValue) / totalPriceIDR) * 100)));
+                    onUpdate('downPaymentPercent', newPercent);
+                  }
+                }}
+                placeholder="0"
+                className="w-full rounded-lg bg-surface-alt border border-border px-4 py-3 pl-12 text-2xl text-text-primary font-mono placeholder:text-text-muted focus:border-primary focus:outline-none"
+              />
+            </div>
+
+            {/* Slider */}
+            <div className="flex items-center gap-4 mb-2">
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={downPaymentPercent}
+                onChange={(e) => {
+                  const newPercent = parseInt(e.target.value);
+                  onUpdate('downPaymentPercent', newPercent);
+                }}
+                className="flex-1 h-3 bg-border-light rounded-full appearance-none cursor-pointer accent-primary [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-md"
+                style={{
+                  background: `linear-gradient(to right, var(--color-primary) 0%, var(--color-primary) ${downPaymentPercent}%, var(--color-border-light) ${downPaymentPercent}%, var(--color-border-light) 100%)`
+                }}
+              />
+              <input
+                type="number"
+                min="0"
+                max="100"
+                value={downPaymentPercent}
+                onChange={(e) => {
+                  const newPercent = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
+                  onUpdate('downPaymentPercent', newPercent);
+                }}
+                className="w-16 rounded bg-surface-alt border border-border px-2 py-1.5 text-text-primary text-sm text-center font-mono focus:border-primary focus:outline-none"
+              />
+              <span className="text-primary font-bold">%</span>
             </div>
 
             <p className="text-sm text-text-secondary">Due immediately upon signing.</p>
@@ -222,7 +258,7 @@ export function PaymentTerms({
                   <div className="col-span-5 text-text-secondary font-medium text-sm">
                     Total Scheduled
                     {scheduleTotalIDR !== expectedRemainingIDR && (
-                      <span className="ml-2 text-xs text-warning" title="Schedule total doesn't match expected 50%">
+                      <span className="ml-2 text-xs text-warning" title={`Schedule total doesn't match expected ${100 - downPaymentPercent}%`}>
                         Expected: {symbol} {formatNumber(expectedRemainingDisplay)}
                       </span>
                     )}
