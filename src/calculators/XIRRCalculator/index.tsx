@@ -9,6 +9,7 @@ import {
 } from '../../components';
 import { Toast } from '../../components/ui/Toast';
 import { DraftSelector } from '../../components/ui/DraftSelector';
+import { AuthModal, type User } from '../../components/ui/AuthModal';
 import { generatePDFReport } from '../../utils/pdfExport';
 import type { InvestmentData } from '../../types/investment';
 
@@ -44,6 +45,9 @@ export function XIRRCalculator() {
 
   const [isSaving, setIsSaving] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const handleSaveDraft = useCallback(() => {
     setIsSaving(true);
@@ -107,7 +111,8 @@ export function XIRRCalculator() {
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  const handleExportPDF = useCallback(() => {
+  const exportPDF = useCallback(() => {
+    setIsExporting(true);
     try {
       generatePDFReport({
         data: dataRef.current,
@@ -122,8 +127,27 @@ export function XIRRCalculator() {
     } catch (error) {
       console.error('PDF export error:', error);
       setToast({ message: 'Failed to export PDF', type: 'error' });
+    } finally {
+      setTimeout(() => setIsExporting(false), 500);
     }
   }, []);
+
+  const handleExportPDF = useCallback(() => {
+    if (!user) {
+      setShowAuth(true);
+    } else {
+      exportPDF();
+    }
+  }, [user, exportPDF]);
+
+  const handleAuthSuccess = useCallback((u: User) => {
+    setUser(u);
+    setShowAuth(false);
+    // Automatically trigger PDF export after auth success
+    setTimeout(() => {
+      exportPDF();
+    }, 500);
+  }, [exportPDF]);
 
   const displayPrice = idrToDisplay(data.property.totalPrice);
   const displayExitPrice = idrToDisplay(data.exit.projectedSalesPrice);
@@ -136,6 +160,11 @@ export function XIRRCalculator() {
 
   return (
     <div className="min-h-screen bg-background text-text-primary selection:bg-primary-light selection:text-primary -mx-4 md:-mx-10 lg:-mx-20 -my-8 px-6 py-8">
+      <AuthModal
+        isOpen={showAuth}
+        onClose={() => setShowAuth(false)}
+        onSuccess={handleAuthSuccess}
+      />
       {toast && (
         <Toast
           message={toast.message}
@@ -285,6 +314,7 @@ export function XIRRCalculator() {
               formatDisplay={formatDisplay}
               onExportPDF={handleExportPDF}
               isPaymentValid={isPaymentValid}
+              isExporting={isExporting}
             />
           </div>
         </div>

@@ -7,9 +7,10 @@ interface Props {
   formatDisplay: (idr: number) => string;
   onExportPDF?: () => void;
   isPaymentValid?: boolean;
+  isExporting?: boolean;
 }
 
-export function ProjectForecast({ result, symbol, formatDisplay, onExportPDF, isPaymentValid = true }: Props) {
+export function ProjectForecast({ result, symbol, formatDisplay, onExportPDF, isPaymentValid = true, isExporting = false }: Props) {
   const xirrValue = result.rate * 100;
   const xirrPercent = xirrValue.toFixed(1);
   const isPositive = result.rate >= 0;
@@ -95,15 +96,27 @@ export function ProjectForecast({ result, symbol, formatDisplay, onExportPDF, is
         <div className="mt-6">
           <button
             onClick={onExportPDF}
-            disabled={!isPaymentValid}
+            disabled={!isPaymentValid || isExporting}
             className={`w-full flex items-center justify-center gap-2 rounded-lg py-3 font-bold transition-colors ${
-              isPaymentValid
+              isPaymentValid && !isExporting
                 ? 'bg-primary text-white hover:bg-primary-dark'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
           >
-            <span className="material-symbols-outlined">picture_as_pdf</span>
-            Export PDF Report
+            {isExporting ? (
+              <>
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Exporting...</span>
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-outlined">picture_as_pdf</span>
+                Export PDF Report
+              </>
+            )}
           </button>
           {!isPaymentValid && (
             <p className="text-xs text-red-500 mt-2 text-center">
