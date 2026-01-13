@@ -197,16 +197,16 @@ const ProjectionsTable: React.FC<Props> = ({ data, avg, currency }) => {
             <col className="w-[160px]" />
           </colgroup>
           <thead>
-            <tr className="border-b border-slate-200">
-              <th className="p-4 font-bold text-slate-700 uppercase tracking-widest sticky left-0 bg-white z-[20] border-r border-slate-100">
+            <tr className="border-b-2 border-slate-200 bg-slate-50/50">
+              <th className="p-4 text-sm font-semibold text-slate-800 uppercase tracking-wide sticky left-0 bg-slate-50/50 z-[20] border-r border-slate-200">
                 Line Item Detail
               </th>
               {data.map(y => (
-                <th key={y.year} className="p-4 font-bold text-center text-slate-600 border-b border-slate-100">
+                <th key={y.year} className="p-4 text-sm font-semibold text-center text-slate-700 border-b border-slate-100">
                   {y.calendarYear}
                 </th>
               ))}
-              <th className="p-4 font-bold text-center text-slate-600 bg-white border-b border-slate-100 sticky right-0 z-[10] border-l border-slate-200">
+              <th className="p-4 text-sm font-semibold text-center text-slate-700 bg-indigo-50/50 border-b border-slate-100 sticky right-0 z-[10] border-l-2 border-indigo-200">
                 Average
               </th>
             </tr>
@@ -216,21 +216,21 @@ const ProjectionsTable: React.FC<Props> = ({ data, avg, currency }) => {
               const isCollapsed = collapsedSections[section.title] ?? true;
               return (
                 <React.Fragment key={sIdx}>
-                  <tr 
-                    className="bg-slate-50/30 hover:bg-slate-50 transition-colors cursor-pointer border-b border-slate-100"
+                  <tr
+                    className="bg-slate-100/60 hover:bg-slate-100 transition-colors cursor-pointer border-b border-slate-200"
                     onClick={() => toggleSection(section.title)}
                   >
-                    <td className="sticky left-0 bg-white z-[15] p-4 border-r border-slate-100 shadow-[2px_0_5px_rgba(0,0,0,0.01)] group-hover:bg-slate-50">
+                    <td className="sticky left-0 bg-slate-100/60 hover:bg-slate-100 z-[15] p-4 border-r border-slate-200 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
                       <div className="flex items-center gap-3">
-                        <svg 
-                          className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''}`} 
-                          fill="none" 
-                          stroke="currentColor" 
+                        <svg
+                          className={`w-3.5 h-3.5 text-slate-500 transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''}`}
+                          fill="none"
+                          stroke="currentColor"
                           viewBox="0 0 24 24"
                         >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
                         </svg>
-                        <span className="font-bold text-slate-700 uppercase tracking-wide text-[11px]">{section.title}</span>
+                        <span className="font-semibold text-slate-700 uppercase tracking-wide text-xs">{section.title}</span>
                       </div>
                     </td>
                     {data.map(y => (

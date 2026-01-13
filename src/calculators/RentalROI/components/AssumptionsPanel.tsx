@@ -16,17 +16,17 @@ const AssumptionsPanel = ({ assumptions, onChange }: Props) => {
 
   return (
     <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm p-12 mt-12 mb-4">
-      <div className="flex items-center gap-4 mb-16">
-        <div className="w-1.5 h-7 bg-slate-200 rounded-full"></div>
-        <h2 className="text-[11px] font-black text-slate-700 uppercase tracking-[0.25em]">Operational Dynamics & Growth Variables</h2>
+      <div className="flex items-center gap-4 mb-12">
+        <div className="w-1 h-6 bg-indigo-500 rounded-full"></div>
+        <h2 className="text-base font-semibold text-slate-800 uppercase tracking-wide">Operational Dynamics & Growth Variables</h2>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-24 gap-y-16">
         {/* Cost Structure */}
-        <section className="space-y-10">
+        <section className="space-y-8">
           <div className="flex items-center gap-2.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm"></div>
-            <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.15em]">
+            <div className="w-2 h-2 rounded-full bg-red-500"></div>
+            <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
               Operating Cost Basis (% Revenue)
             </h3>
             <Tooltip text="Direct operating costs expressed as a percentage of their respective revenue streams. These costs vary directly with occupancy and service delivery." />
@@ -40,10 +40,10 @@ const AssumptionsPanel = ({ assumptions, onChange }: Props) => {
         </section>
 
         {/* Growth & Fee Escalation */}
-        <section className="space-y-10">
+        <section className="space-y-8">
           <div className="flex items-center gap-2.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm"></div>
-            <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.15em]">
+            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+            <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
               Growth & Fee Escalation (% p.a.)
             </h3>
             <Tooltip text="Annual growth rates and undistributed expense ratios. These percentages compound year-over-year throughout the 10-year projection." />
@@ -70,7 +70,7 @@ const SecondaryInput: React.FC<{
 }> = ({ label, value, placeholder, onChange, isPercentage, tooltip }) => {
   return (
     <div className="space-y-3">
-      <label className="flex items-center gap-1 text-[10px] font-black text-slate-600 uppercase tracking-tighter ml-0.5">
+      <label className="flex items-center gap-1.5 text-xs font-medium text-slate-500 uppercase tracking-wide ml-0.5">
         {label}
         {tooltip && <Tooltip text={tooltip} />}
       </label>
