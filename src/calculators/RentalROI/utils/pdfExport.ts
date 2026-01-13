@@ -60,6 +60,25 @@ function calcGrowth(y1: number, y10: number): number {
   return Math.max(-999, Math.min(999, growth));
 }
 
+// Compact currency format for PDF metrics (abbreviates large numbers)
+function formatCompactCurrency(val: number, currency: CurrencyConfig): string {
+  const converted = val / currency.rate;
+  const abs = Math.abs(converted);
+  const sign = converted < 0 ? '-' : '';
+
+  if (currency.code === 'IDR') {
+    if (abs >= 1e12) return `${sign}${currency.symbol} ${(abs / 1e12).toFixed(1)}T`;
+    if (abs >= 1e9) return `${sign}${currency.symbol} ${(abs / 1e9).toFixed(1)}B`;
+    if (abs >= 1e6) return `${sign}${currency.symbol} ${(abs / 1e6).toFixed(0)}M`;
+    return `${sign}${currency.symbol} ${abs.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+  } else {
+    if (abs >= 1e9) return `${sign}${currency.symbol}${(abs / 1e9).toFixed(1)}B`;
+    if (abs >= 1e6) return `${sign}${currency.symbol}${(abs / 1e6).toFixed(1)}M`;
+    if (abs >= 1e3) return `${sign}${currency.symbol}${(abs / 1e3).toFixed(0)}K`;
+    return `${sign}${currency.symbol}${abs.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+  }
+}
+
 export function generateRentalROIPDF(options: PDFExportOptions): void {
   const { data, assumptions, currency, projectName } = options;
 
@@ -148,8 +167,8 @@ export function generateRentalROIPDF(options: PDFExportOptions): void {
 
   const metrics = [
     { label: 'AVG NET YIELD', value: `${capPercent(avgNetYield)}%`, subtitle: 'Annual Return', isHighlight: true },
-    { label: '10Y NET PROFIT', value: formatCurrency(totalProfit, currency), subtitle: 'Total Earnings', isHighlight: false },
-    { label: 'AVG CASH FLOW', value: formatCurrency(avgProfit, currency), subtitle: 'Per Year', isHighlight: false },
+    { label: '10Y NET PROFIT', value: formatCompactCurrency(totalProfit, currency), subtitle: 'Total Earnings', isHighlight: false },
+    { label: 'AVG CASH FLOW', value: formatCompactCurrency(avgProfit, currency), subtitle: 'Per Year', isHighlight: false },
     { label: 'GOP MARGIN', value: `${capPercent(avgGopMargin)}%`, subtitle: 'Avg Margin', isHighlight: false },
     { label: 'PAYBACK', value: paybackYears < 99 ? `${paybackYears.toFixed(1)} Yrs` : 'N/A', subtitle: 'Recovery', isHighlight: false },
   ];
@@ -232,19 +251,29 @@ export function generateRentalROIPDF(options: PDFExportOptions): void {
     const readyDateStr = readyDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
     doc.setFillColor(255, 251, 235); // amber-50
-    doc.roundedRect(margin, yPos, contentWidth, 10, 2, 2, 'F');
+    doc.roundedRect(margin, yPos, contentWidth, 12, 2, 2, 'F');
     doc.setDrawColor(253, 230, 138); // amber-200
-    doc.roundedRect(margin, yPos, contentWidth, 10, 2, 2, 'S');
+    doc.roundedRect(margin, yPos, contentWidth, 12, 2, 2, 'S');
 
+    // Draw warning indicator circle
+    doc.setFillColor(245, 158, 11); // amber-500
+    doc.circle(margin + 7, yPos + 6, 2.5, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(5);
+    doc.setFont('helvetica', 'bold');
+    doc.text('!', margin + 7, yPos + 7.2, { align: 'center' });
+
+    // Text content
     doc.setTextColor(180, 83, 9); // amber-700
     doc.setFontSize(FONT.sm);
     doc.setFont('helvetica', 'bold');
-    doc.text('⏳ Property Not Ready', margin + 4, yPos + 4.5);
+    doc.text('Property Not Ready', margin + 14, yPos + 5);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(FONT.xs);
-    doc.text(`Expected: ${readyDateStr} - Occupancy prorated accordingly`, margin + 42, yPos + 4.5);
+    doc.setTextColor(146, 64, 14); // amber-800
+    doc.text(`Expected: ${readyDateStr}  |  Occupancy prorated accordingly`, margin + 14, yPos + 9.5);
 
-    yPos += 14;
+    yPos += 16;
   } else {
     yPos += 4;
   }
