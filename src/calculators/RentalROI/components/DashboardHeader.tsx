@@ -20,7 +20,7 @@ function MiniTooltip({ text }: { text: string }) {
         ?
       </button>
       {show && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1.5 bg-slate-800 text-white text-[10px] rounded-lg shadow-lg whitespace-normal w-48 z-50">
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1.5 bg-slate-800 text-white text-[10px] rounded-lg shadow-lg whitespace-normal w-48 z-50 normal-case tracking-normal font-normal">
           {text}
           <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
         </div>
@@ -36,7 +36,7 @@ const DashboardHeader: React.FC<Props> = ({ data, currency }) => {
   const totalProfit = data.reduce((s, i) => s + i.takeHomeProfit, 0);
 
   return (
-    <div className="sticky top-8 flex flex-col gap-4">
+    <div className="sticky top-8 flex flex-col gap-4 z-40">
       <Card
         title="Avg Annual Cash Flow"
         value={formatCurrency(avgProfit, currency)}
