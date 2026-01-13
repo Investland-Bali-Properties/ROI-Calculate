@@ -168,22 +168,23 @@ export function XIRRCalculator() {
       )}
 
       <div className="max-w-[100%] mx-auto">
-        <header className="mb-8 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="bg-primary p-2.5 rounded-lg shadow-sm">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+          <header className="lg:col-span-9 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="bg-primary p-2.5 rounded-lg shadow-sm">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-text-primary tracking-tight">XIRR Calculator</h1>
+                <p className="text-text-muted text-xs mt-1 max-w-md">
+                  Calculate your real estate investment returns based on purchase price, payment schedule, and projected sale price
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-text-primary tracking-tight">XIRR Calculator</h1>
-              <p className="text-text-muted text-xs mt-1 max-w-md">
-                Calculate your real estate investment returns based on purchase price, payment schedule, and projected sale price
-              </p>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-4 flex-wrap">
             {currency !== 'IDR' && (
               <div className="flex items-center gap-3 bg-surface px-4 py-2 rounded-lg border border-border shadow-sm">
                 <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">
@@ -261,8 +262,9 @@ export function XIRRCalculator() {
                 <span>Save Draft</span>
               )}
             </button>
-          </div>
-        </header>
+            </div>
+          </header>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-9 space-y-6">
