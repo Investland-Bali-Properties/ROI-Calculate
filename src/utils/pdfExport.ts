@@ -380,18 +380,7 @@ export function generatePDFReport(options: PDFExportOptions): void {
   doc.setFont('helvetica', 'bold');
   doc.text(`-${symbol} ${toDisplay(result.totalInvested).toLocaleString()}`, rightColX + colWidth - 10, summaryY + 5.5, { align: 'right' });
 
-  // Row 2: Sale Proceeds
-  summaryY += summaryRowHeight + summaryGap;
-  doc.setFillColor(...COLORS.primaryLight);
-  doc.roundedRect(rightColX + 6, summaryY, colWidth - 12, summaryRowHeight, 1, 1, 'F');
-  doc.setTextColor(...COLORS.primary);
-  doc.setFontSize(FONT.sm);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Sale Proceeds (In)', rightColX + 10, summaryY + 5.5);
-  doc.setFont('helvetica', 'bold');
-  doc.text(`+${symbol} ${toDisplay(netProceeds).toLocaleString()}`, rightColX + colWidth - 10, summaryY + 5.5, { align: 'right' });
-
-  // Row 3: Net Profit
+  // Row 2: Net Profit
   summaryY += summaryRowHeight + summaryGap;
   const profitColor = result.netProfit >= 0 ? COLORS.primary : COLORS.red;
   doc.setFillColor(...(result.netProfit >= 0 ? COLORS.primaryLight : COLORS.redLight));
