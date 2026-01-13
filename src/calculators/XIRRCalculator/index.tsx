@@ -9,7 +9,7 @@ import {
 } from '../../components';
 import { Toast } from '../../components/ui/Toast';
 import { DraftSelector } from '../../components/ui/DraftSelector';
-import { type User } from '../../components/ui/AuthModal';
+import AuthModal, { type User } from '../../components/ui/AuthModal';
 import { ReportView } from './components/ReportView';
 import type { InvestmentData } from '../../types/investment';
 
@@ -45,6 +45,7 @@ export function XIRRCalculator() {
 
   const [isSaving, setIsSaving] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
   const [user, setUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('roi_calculate_user');
     return saved ? JSON.parse(saved) : null;
@@ -159,6 +160,15 @@ export function XIRRCalculator() {
 
   return (
     <div className="min-h-screen bg-background text-text-primary selection:bg-primary-light selection:text-primary -mx-4 md:-mx-10 lg:-mx-20 -my-8 px-6 py-8">
+      <AuthModal
+        isOpen={showAuth}
+        onClose={() => setShowAuth(false)}
+        onSuccess={(u) => {
+          setUser(u);
+          setShowAuth(false);
+        }}
+      />
+
       {toast && (
         <Toast
           message={toast.message}
@@ -168,22 +178,23 @@ export function XIRRCalculator() {
       )}
 
       <div className="max-w-[100%] mx-auto">
-        <header className="mb-8 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="bg-primary p-2.5 rounded-lg shadow-sm">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+          <header className="lg:col-span-9 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="bg-primary p-2.5 rounded-lg shadow-sm">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-text-primary tracking-tight">XIRR Calculator</h1>
+                <p className="text-text-muted text-xs mt-1 max-w-md">
+                  Calculate your real estate investment returns based on purchase price, payment schedule, and projected sale price
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-text-primary tracking-tight">XIRR Calculator</h1>
-              <p className="text-text-muted text-xs mt-1 max-w-md">
-                Calculate your real estate investment returns based on purchase price, payment schedule, and projected sale price
-              </p>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-4 flex-wrap">
             {currency !== 'IDR' && (
               <div className="flex items-center gap-3 bg-surface px-4 py-2 rounded-lg border border-border shadow-sm">
                 <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">
@@ -261,8 +272,45 @@ export function XIRRCalculator() {
                 <span>Save Draft</span>
               )}
             </button>
+            </div>
+          </header>
+
+          {/* Profile Section - Top Right */}
+          <div className="lg:col-span-3 flex justify-end items-start">
+            {user ? (
+              <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="text-sm font-bold text-primary uppercase">
+                    {user.name.charAt(0)}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-semibold text-slate-700">{user.name}</span>
+                  <span className="text-[10px] text-slate-400">{user.email}</span>
+                </div>
+                <button
+                  onClick={() => setUser(null)}
+                  className="ml-2 text-slate-400 hover:text-red-500 transition-colors"
+                  title="Sign out"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowAuth(true)}
+                className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm hover:border-primary/50 hover:bg-primary/5 transition-all"
+              >
+                <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span className="text-xs font-semibold text-slate-600">Sign In</span>
+              </button>
+            )}
           </div>
-        </header>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-9 space-y-6">

@@ -129,6 +129,10 @@ export function generatePaymentSchedule(data: InvestmentData): CashFlow[] {
     // Booking fee is deducted from down payment
     const remainingDownPayment = Math.max(0, downPayment - bookingFee);
 
+    // Calculate what installments should cover (total - all upfront payments)
+    const totalUpfront = bookingFee + remainingDownPayment;
+    const installmentTotal = property.totalPrice - totalUpfront;
+
     // Add booking fee as separate cash flow on its date (if any)
     if (bookingFee > 0) {
       cashFlows.push({
@@ -145,23 +149,32 @@ export function generatePaymentSchedule(data: InvestmentData): CashFlow[] {
       });
     }
 
-    // Use stored schedule if available (has correct remainder adjustment)
-    if (payment.schedule && payment.schedule.length > 0) {
-      payment.schedule.forEach((entry) => {
+    // Add installment payments - use stored schedule dates but calculate amounts
+    // to ensure total invested always equals total price
+    if (payment.schedule && payment.schedule.length > 0 && installmentTotal > 0) {
+      const numInstallments = payment.schedule.length;
+      const basePayment = Math.floor(installmentTotal / numInstallments);
+      const remainder = installmentTotal - (basePayment * numInstallments);
+
+      payment.schedule.forEach((entry, index) => {
         const entryDate = new Date(entry.date);
-        // Only add if date is valid and amount is non-zero
-        if (!isNaN(entryDate.getTime()) && entry.amount > 0) {
-          cashFlows.push({
-            date: entryDate,
-            amount: -entry.amount
-          });
+        if (!isNaN(entryDate.getTime())) {
+          // Last installment gets the remainder to ensure exact total
+          const amount = index === numInstallments - 1
+            ? basePayment + remainder
+            : basePayment;
+          if (amount > 0) {
+            cashFlows.push({
+              date: entryDate,
+              amount: -amount
+            });
+          }
         }
       });
-    } else {
+    } else if (installmentTotal > 0) {
       // Fallback: calculate schedule dynamically from purchase date
-      const remaining = property.totalPrice - downPayment;
-      const baseMonthlyPayment = Math.floor(remaining / payment.installmentMonths);
-      const remainder = remaining - (baseMonthlyPayment * payment.installmentMonths);
+      const baseMonthlyPayment = Math.floor(installmentTotal / payment.installmentMonths);
+      const remainder = installmentTotal - (baseMonthlyPayment * payment.installmentMonths);
 
       for (let i = 1; i <= payment.installmentMonths; i++) {
         const paymentDate = new Date(purchaseDate);
