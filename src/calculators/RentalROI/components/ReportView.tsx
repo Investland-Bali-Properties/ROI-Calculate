@@ -189,6 +189,19 @@ const ReportView: React.FC<Props> = ({ data, assumptions, currency, user, onLogi
             <div className="w-2 h-6 bg-slate-900 rounded-full"></div>
             <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Investment Parameters</h2>
           </div>
+          {/* Property Readiness Notice */}
+          {!assumptions.isPropertyReady && assumptions.propertyReadyDate && (
+            <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3">
+              <span className="text-amber-600 text-xl">⏳</span>
+              <div>
+                <div className="text-sm font-bold text-amber-800">Property Not Yet Ready</div>
+                <div className="text-xs text-amber-600">
+                  Expected ready date: {new Date(assumptions.propertyReadyDate + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  {' '}- Occupancy prorated accordingly
+                </div>
+              </div>
+            </div>
+          )}
           <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
             <div className="grid grid-cols-2 md:grid-cols-3 divide-x divide-y divide-slate-100">
               <div className="p-5">
