@@ -76,7 +76,6 @@ const ProjectionsTable: React.FC<Props> = ({ data, avg, currency }) => {
       title: 'Occupancy Based Performance',
       isExpandedByDefault: true,
       rows: [
-        { label: '# of Keys', key: 'keys', type: 'num' },
         { label: 'Occupancy (%)', key: 'occupancy', type: 'pct' },
         { label: 'Average Daily Rate (ADR)', key: 'adr', type: 'curr' },
         { label: 'RevPAR', key: 'revpar', type: 'curr' },
