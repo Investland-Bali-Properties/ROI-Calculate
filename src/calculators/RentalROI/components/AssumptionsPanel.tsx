@@ -28,7 +28,7 @@ const AssumptionsPanel = ({ assumptions, onChange, currency }: Props) => {
         <section className="space-y-8">
           <div className="flex items-center gap-2.5">
             <div className="w-2 h-2 rounded-full bg-red-500"></div>
-            <h3 className="text-sm font-semibold text-slate-700">
+            <h3 className="text-base font-semibold text-slate-700">
               Operating Cost Basis (% Revenue)
             </h3>
           </div>
@@ -44,7 +44,7 @@ const AssumptionsPanel = ({ assumptions, onChange, currency }: Props) => {
         <section className="space-y-8">
           <div className="flex items-center gap-2.5">
             <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-            <h3 className="text-sm font-semibold text-slate-700">
+            <h3 className="text-base font-semibold text-slate-700">
               Undistributed Expenses (% Revenue)
             </h3>
           </div>
@@ -59,7 +59,7 @@ const AssumptionsPanel = ({ assumptions, onChange, currency }: Props) => {
         <section className="space-y-8">
           <div className="flex items-center gap-2.5">
             <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-            <h3 className="text-sm font-semibold text-slate-700">
+            <h3 className="text-base font-semibold text-slate-700">
               Annual Growth Rates (% p.a.)
             </h3>
           </div>
@@ -73,7 +73,7 @@ const AssumptionsPanel = ({ assumptions, onChange, currency }: Props) => {
         <section className="space-y-8">
           <div className="flex items-center gap-2.5">
             <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-            <h3 className="text-sm font-semibold text-slate-700">
+            <h3 className="text-base font-semibold text-slate-700">
               Year 1 Management Fees ({currency.code})
             </h3>
           </div>
