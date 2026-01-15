@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { Assumptions, CurrencyConfig } from '../types';
 import { PLACEHOLDER_VALUES } from '../constants';
 import { Tooltip } from '../../../components/ui/Tooltip';
+import { parseDecimalInput, sanitizeDecimalInput } from '../../../utils/numberParsing';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -336,11 +337,19 @@ const TopInputsPanel: React.FC<Props> = ({ assumptions, onChange, currency }) =>
                 <label className="text-xs font-medium text-slate-500">Y{idx + 2}</label>
                 <div className="relative">
                   <input
-                    type="number"
-                    step="0.5"
+                    type="text"
+                    inputMode="decimal"
                     value={val === null ? '' : val}
                     placeholder={PLACEHOLDER_VALUES.occupancyIncreases[idx]?.toString() || '0'}
-                    onChange={(e) => handleOccupancyIncreaseChange(idx, e.target.value === '' ? null : parseFloat(e.target.value))}
+                    onChange={(e) => {
+                      const inputVal = sanitizeDecimalInput(e.target.value);
+                      if (inputVal === '' || inputVal === '.' || inputVal === ',') {
+                        handleOccupancyIncreaseChange(idx, null);
+                      } else {
+                        const num = parseDecimalInput(inputVal);
+                        handleOccupancyIncreaseChange(idx, isNaN(num) ? null : num);
+                      }
+                    }}
                     className="w-full bg-[#fcfdfe] border border-slate-200 rounded-xl px-3 py-2 text-[13px] font-bold text-slate-900 placeholder:text-slate-300 focus:border-[#4f46e5] focus:ring-1 focus:ring-[#4f46e5] outline-none"
                   />
                   <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-300">%</span>
@@ -382,13 +391,23 @@ const TopInputGroup: React.FC<{
   }, [displayValue, isPercentage, noSeparator]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = e.target.value.replace(/,/g, '');
-    setInputValue(e.target.value);
-    const num = parseFloat(rawValue);
+    const inputVal = e.target.value;
+    setInputValue(inputVal);
+
+    // For percentage/noSeparator fields, allow comma as decimal separator
+    // For currency fields, comma is thousands separator and should be removed
+    let num: number;
+    if (isPercentage || noSeparator) {
+      num = parseDecimalInput(inputVal);
+    } else {
+      const rawValue = inputVal.replace(/,/g, '');
+      num = parseFloat(rawValue);
+    }
+
     if (!isNaN(num)) {
       const modelValue = currency ? (num * currency.rate) : num;
       onChange(modelValue);
-    } else if (rawValue === '') {
+    } else if (inputVal === '' || inputVal === ',' || inputVal === '.') {
       onChange(0);
     }
   };
