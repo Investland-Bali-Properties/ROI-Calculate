@@ -407,15 +407,8 @@ const TopInputGroup: React.FC<{
     const inputVal = e.target.value;
     setInputValue(inputVal);
 
-    // For percentage/noSeparator fields, allow comma as decimal separator
-    // For currency fields, comma is thousands separator and should be removed
-    let num: number;
-    if (isPercentage || noSeparator) {
-      num = parseDecimalInput(inputVal);
-    } else {
-      const rawValue = inputVal.replace(/,/g, '');
-      num = parseFloat(rawValue);
-    }
+    // Allow comma as decimal separator for all fields
+    const num = parseDecimalInput(inputVal);
 
     if (!isNaN(num)) {
       const modelValue = currency ? (num * currency.rate) : num;
