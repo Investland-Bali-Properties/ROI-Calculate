@@ -1,36 +1,71 @@
 
 import type { Assumptions, YearlyData } from '../types';
 
-// Calculate operational months factor for a year based on property ready date
+// Helper to parse purchase date
+function getPurchaseDate(assumptions: Assumptions): { year: number; month: number } {
+  if (assumptions.purchaseDate) {
+    const [year, month] = assumptions.purchaseDate.split('-').map(Number);
+    return { year, month };
+  }
+  return { year: new Date().getFullYear(), month: 1 };
+}
+
+// Helper to derive baseYear from purchaseDate
+function getBaseYear(assumptions: Assumptions): number {
+  return getPurchaseDate(assumptions).year;
+}
+
+// Calculate the factor for partial year operations based on purchase date
+// This is used when property IS ready at purchase
+function getPurchaseYearFactor(calendarYear: number, assumptions: Assumptions): number {
+  const { year: purchaseYear, month: purchaseMonth } = getPurchaseDate(assumptions);
+
+  // Before purchase year: no operations
+  if (calendarYear < purchaseYear) return 0;
+
+  // Purchase year: prorate from purchase month
+  if (calendarYear === purchaseYear) {
+    const monthsOperational = 13 - purchaseMonth; // e.g., July (7) = 6 months
+    return monthsOperational / 12;
+  }
+
+  // After purchase year: full year
+  return 1;
+}
+
+// Calculate operational months factor for a year based on property ready date AND purchase date
 function getOperationalFactor(calendarYear: number, assumptions: Assumptions): number {
-  // If property is ready, full year operational
-  if (assumptions.isPropertyReady) return 1;
+  const { year: purchaseYear } = getPurchaseDate(assumptions);
 
-  // If no ready date set, assume full year
-  if (!assumptions.propertyReadyDate) return 1;
+  // Before purchase year: no operations possible
+  if (calendarYear < purchaseYear) return 0;
 
-  // Parse ready date (format: YYYY-MM)
+  // If property is ready at purchase, use purchase date for proration
+  if (assumptions.isPropertyReady) {
+    return getPurchaseYearFactor(calendarYear, assumptions);
+  }
+
+  // Property is NOT ready - use property ready date
+  if (!assumptions.propertyReadyDate) {
+    // No ready date set but property not ready - use purchase date factor as fallback
+    return getPurchaseYearFactor(calendarYear, assumptions);
+  }
+
   const [readyYear, readyMonth] = assumptions.propertyReadyDate.split('-').map(Number);
 
   // If ready date is before this calendar year, full year operational
-  if (readyYear < calendarYear) return 1;
+  // (but still consider purchase year for Y1)
+  if (readyYear < calendarYear) {
+    return getPurchaseYearFactor(calendarYear, assumptions);
+  }
 
   // If ready date is after this calendar year, no operations
   if (readyYear > calendarYear) return 0;
 
   // Ready date is within this calendar year
   // Calculate months operational (from ready month to December)
-  const monthsOperational = 13 - readyMonth; // e.g., July (7) = 13-7 = 6 months
+  const monthsOperational = 13 - readyMonth;
   return monthsOperational / 12;
-}
-
-// Helper to derive baseYear from purchaseDate
-function getBaseYear(assumptions: Assumptions): number {
-  if (assumptions.purchaseDate) {
-    const [year] = assumptions.purchaseDate.split('-').map(Number);
-    return year;
-  }
-  return new Date().getFullYear();
 }
 
 export function calculateProjections(assumptions: Assumptions): YearlyData[] {
@@ -125,10 +160,16 @@ export function calculateProjections(assumptions: Assumptions): YearlyData[] {
     const gop = totalRevenue - totalOperatingCost - totalUndistributedCost;
     const gopMargin = totalRevenue ? (gop / totalRevenue) * 100 : 0;
 
-    // Management & Ownership Fees
-    const feeCAM = i === 0 ? assumptions.y1CAM : (prevYear?.feeCAM || 0) * (1 + assumptions.camGrowth / 100);
-    const feeBase = i === 0 ? assumptions.y1BaseFee : (prevYear?.feeBase || 0) * (1 + assumptions.baseFeeGrowth / 100);
-    const feeTech = i === 0 ? assumptions.y1TechFee : (prevYear?.feeTech || 0) * (1 + assumptions.techFeeGrowth / 100);
+    // Management & Ownership Fees (prorated for partial years based on purchase date)
+    const purchaseYearFactor = getPurchaseYearFactor(calendarYear, assumptions);
+    const baseCAM = i === 0 ? assumptions.y1CAM : (prevYear?.feeCAM || 0) / (getPurchaseYearFactor(calendarYear - 1, assumptions) || 1) * (1 + assumptions.camGrowth / 100);
+    const baseBaseFee = i === 0 ? assumptions.y1BaseFee : (prevYear?.feeBase || 0) / (getPurchaseYearFactor(calendarYear - 1, assumptions) || 1) * (1 + assumptions.baseFeeGrowth / 100);
+    const baseTechFee = i === 0 ? assumptions.y1TechFee : (prevYear?.feeTech || 0) / (getPurchaseYearFactor(calendarYear - 1, assumptions) || 1) * (1 + assumptions.techFeeGrowth / 100);
+
+    // Apply purchase year factor to prorate fees for partial years
+    const feeCAM = baseCAM * purchaseYearFactor;
+    const feeBase = baseBaseFee * purchaseYearFactor;
+    const feeTech = baseTechFee * purchaseYearFactor;
     const feeIncentive = gop * (assumptions.incentiveFeePct / 100);
     
     const totalManagementFees = feeCAM + feeBase + feeTech + feeIncentive;
