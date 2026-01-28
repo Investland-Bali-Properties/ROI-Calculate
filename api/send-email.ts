@@ -10,13 +10,7 @@ export default async function handler(request: Request) {
     });
   }
 
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    return new Response(JSON.stringify({ error: 'RESEND_API_KEY not configured' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+  const apiKey = process.env.RESEND_API_KEY || 're_jDiA52Nb_FLN6sGLTTzNCy2PntoeSfUmz';
 
   try {
     const { email, pdfBase64, fileName, reportType } = await request.json();
@@ -28,7 +22,7 @@ export default async function handler(request: Request) {
       });
     }
 
-    const fromAddress = process.env.RESEND_FROM_EMAIL || 'ROI Calculate <onboarding@resend.dev>';
+    const fromAddress = process.env.RESEND_FROM_EMAIL || 'ROI Calculate <reports@roicalculate.com>';
 
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
