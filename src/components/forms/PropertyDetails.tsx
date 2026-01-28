@@ -25,9 +25,9 @@ export function PropertyDetails({ data, symbol, displayPrice, onUpdate, onPriceC
     return parseInt(digits, 10) || 0;
   };
 
-  // Parse decimal input: allow digits, dots, and commas
+  // Parse decimal input: treat comma as decimal separator (e.g. 50,4 → 50.4)
   const parseDecimalInput = (value: string): number => {
-    const cleaned = value.replace(/,/g, '');
+    const cleaned = value.replace(',', '.');
     return parseFloat(cleaned) || 0;
   };
 
@@ -36,10 +36,11 @@ export function PropertyDetails({ data, symbol, displayPrice, onUpdate, onPriceC
     return num.toLocaleString('en-US');
   };
 
-  // Format number preserving decimals
+  // Format with comma as decimal separator (e.g. 50.4 → "50,4")
   const formatDecimal = (num: number): string => {
     if (num === 0) return '';
-    return num % 1 === 0 ? num.toLocaleString('en-US') : num.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 2 });
+    if (num % 1 === 0) return String(num);
+    return String(num).replace('.', ',');
   };
 
   return (
