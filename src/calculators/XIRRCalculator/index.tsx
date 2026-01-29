@@ -217,13 +217,15 @@ export function XIRRCalculator() {
               </select>
             </div>
 
-            <DraftSelector
-              drafts={drafts}
-              onSelect={handleSelectDraft}
-              onSave={handleSaveArchive}
-              onDelete={handleDeleteDraft}
-              currentName={currentDraftName}
-            />
+            {user && (
+              <DraftSelector
+                drafts={drafts}
+                onSelect={handleSelectDraft}
+                onSave={handleSaveArchive}
+                onDelete={handleDeleteDraft}
+                currentName={currentDraftName}
+              />
+            )}
 
             <button
               onClick={handleReset}
