@@ -2,6 +2,8 @@ import { useState, useCallback, Suspense } from 'react';
 import { Header, Footer } from './components';
 import { CalculatorSelector } from './components/CalculatorSelector';
 import { CALCULATORS, getCalculatorById } from './calculators/registry';
+import { WelcomePopup } from './components/ui/WelcomePopup';
+import { AuthModal, type AuthMode } from './components/ui/AuthModal';
 
 const ACTIVE_CALCULATOR_KEY = 'baliinvest_active_calculator';
 
@@ -11,9 +13,18 @@ function App() {
     return saved && getCalculatorById(saved) ? saved : 'xirr';
   });
 
+  // Auth modal state
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<AuthMode>('signup');
+
   const handleCalculatorChange = useCallback((id: string) => {
     setActiveCalculatorId(id);
     localStorage.setItem(ACTIVE_CALCULATOR_KEY, id);
+  }, []);
+
+  const openAuthModal = useCallback((mode: AuthMode) => {
+    setAuthModalMode(mode);
+    setAuthModalOpen(true);
   }, []);
 
   const activeCalculator = getCalculatorById(activeCalculatorId);
@@ -49,6 +60,21 @@ function App() {
       </main>
 
       <Footer onSelectCalculator={handleCalculatorChange} />
+
+      {/* Welcome Popup - shows after 3s for first-time visitors */}
+      <WelcomePopup
+        onJoinWaitlist={() => openAuthModal('waitlist')}
+        onSignUp={() => openAuthModal('signup')}
+        onLogin={() => openAuthModal('login')}
+      />
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        onSuccess={() => setAuthModalOpen(false)}
+        initialMode={authModalMode}
+      />
     </div>
   );
 }

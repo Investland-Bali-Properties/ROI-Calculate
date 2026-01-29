@@ -7,17 +7,20 @@ import { registerUser, loginUser, addToWaitlist, type User } from '../../lib/aut
 // Re-export User type for consumers
 export type { User };
 
+export type AuthMode = 'login' | 'signup' | 'waitlist';
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (user: User) => void;
+  initialMode?: AuthMode;
+  hideWaitlist?: boolean;
 }
 
-type AuthMode = 'login' | 'signup' | 'waitlist';
 type AuthStep = 'form' | 'processing' | 'success' | 'waitlist-success';
 
-export const AuthModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) => {
-  const [mode, setMode] = useState<AuthMode>('signup');
+export const AuthModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, initialMode = 'signup', hideWaitlist = false }) => {
+  const [mode, setMode] = useState<AuthMode>(initialMode);
   const [step, setStep] = useState<AuthStep>('form');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<ValidationError[]>([]);
@@ -38,7 +41,7 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) => {
   // Reset form when modal opens/closes
   useEffect(() => {
     if (isOpen) {
-      setMode('signup');
+      setMode(initialMode);
       setStep('form');
       setErrors([]);
       setGeneralError(null);
@@ -49,7 +52,7 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) => {
       setName('');
       setPasswordStrength(null);
     }
-  }, [isOpen]);
+  }, [isOpen, initialMode]);
 
   // Update password strength when password changes
   useEffect(() => {
@@ -451,12 +454,14 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) => {
               >
                 {mode === 'login' ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
               </button>
-              <button
-                onClick={() => switchMode('waitlist')}
-                className="w-full text-center text-sm font-medium text-primary hover:text-primary-dark transition-colors"
-              >
-                Just want updates? Join the waitlist
-              </button>
+              {!hideWaitlist && (
+                <button
+                  onClick={() => switchMode('waitlist')}
+                  className="w-full text-center text-sm font-medium text-primary hover:text-primary-dark transition-colors"
+                >
+                  Just want updates? Join the waitlist
+                </button>
+              )}
             </div>
           </div>
         )}

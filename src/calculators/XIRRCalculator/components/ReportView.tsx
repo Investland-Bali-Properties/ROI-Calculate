@@ -172,6 +172,7 @@ export function ReportView({
         isOpen={showAuth}
         onClose={() => setShowAuth(false)}
         onSuccess={handleAuthSuccess}
+        hideWaitlist
       />
 
       {/* Navigation Bar */}

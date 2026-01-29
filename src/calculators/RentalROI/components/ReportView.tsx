@@ -102,6 +102,7 @@ const ReportView: React.FC<Props> = ({ data, assumptions, currency, user, onLogi
         isOpen={showAuth}
         onClose={() => setShowAuth(false)}
         onSuccess={handleAuthSuccess}
+        hideWaitlist
       />
 
       {/* Navigation Bar */}
