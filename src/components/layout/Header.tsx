@@ -5,7 +5,7 @@ import { logoutUser, sendPasswordReset } from '../../lib/auth-store';
 
 export function Header() {
   const [showAuth, setShowAuth] = useState(false);
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
   const handleLogout = async () => {
     await logoutUser();
@@ -36,7 +36,11 @@ export function Header() {
 
           {/* Profile Section */}
           <div className="flex items-center">
-            {user ? (
+            {loading ? (
+              <div className="bg-slate-50 px-4 py-2 rounded-lg border border-slate-200">
+                <div className="w-20 h-4 bg-slate-200 rounded animate-pulse" />
+              </div>
+            ) : user ? (
               <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-lg border border-slate-200">
                 <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
                   <span className="text-sm font-bold text-indigo-600 uppercase">
