@@ -8,12 +8,7 @@ export interface CurrencyConfig {
   rate: number; // Rate relative to IDR (1 unit of currency = X IDR)
 }
 
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  isVerified: boolean;
-}
+export type { User } from '../../lib/auth-store';
 
 export interface YearlyData {
   year: number;

@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { INITIAL_ASSUMPTIONS, EMPTY_ASSUMPTIONS, CURRENCIES } from './constants';
-import type { CurrencyCode, User, Assumptions } from './types';
+import type { CurrencyCode, Assumptions } from './types';
 import { calculateProjections, calculateAverage } from './utils/calculations';
 import DashboardHeader from './components/DashboardHeader';
 import TopInputsPanel from './components/TopInputsPanel';
@@ -10,15 +10,13 @@ import ReportView from './components/ReportView';
 import { Toast } from '../../components/ui/Toast';
 import { DraftSelector } from '../../components/ui/DraftSelector';
 import { useArchivedDrafts, type ArchivedDraft } from '../../hooks/useArchivedDrafts';
+import { useAuth } from '../../lib/auth-context';
 
 const DRAFT_STORAGE_KEY = 'rental_roi_draft';
 
 export function RentalROICalculator() {
   const [view, setView] = useState<'dashboard' | 'report'>('dashboard');
-  const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('roi_calculate_user');
-    return saved ? JSON.parse(saved) : null;
-  });
+  const { user } = useAuth();
 
   const [currencyCode, setCurrencyCode] = useState<CurrencyCode>(() => {
     const saved = localStorage.getItem('rental_roi_currency');
@@ -30,14 +28,6 @@ export function RentalROICalculator() {
   useEffect(() => {
     localStorage.setItem('rental_roi_currency', currencyCode);
   }, [currencyCode]);
-
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem('roi_calculate_user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('roi_calculate_user');
-    }
-  }, [user]);
 
   const [assumptions, setAssumptions] = useState<Assumptions>(() => {
     try {
@@ -118,7 +108,7 @@ export function RentalROICalculator() {
         assumptions={assumptions}
         currency={currency}
         user={user}
-        onLogin={setUser}
+        onLogin={() => {}}
         onBack={() => setView('dashboard')}
       />
     );

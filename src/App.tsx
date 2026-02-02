@@ -4,6 +4,8 @@ import { CalculatorSelector } from './components/CalculatorSelector';
 import { CALCULATORS, getCalculatorById } from './calculators/registry';
 import { WelcomePopup } from './components/ui/WelcomePopup';
 import { AuthModal, type AuthMode } from './components/ui/AuthModal';
+import { useAuth } from './lib/auth-context';
+import { PasswordResetForm } from './components/ui/PasswordResetForm';
 
 const ACTIVE_CALCULATOR_KEY = 'baliinvest_active_calculator';
 
@@ -61,12 +63,12 @@ function App() {
 
       <Footer onSelectCalculator={handleCalculatorChange} />
 
-      {/* Welcome Popup - shows after 3s for first-time visitors */}
-      <WelcomePopup
+      {/* Welcome Popup - disabled for now */}
+      {/* <WelcomePopup
         onJoinWaitlist={() => openAuthModal('waitlist')}
         onSignUp={() => openAuthModal('signup')}
         onLogin={() => openAuthModal('login')}
-      />
+      /> */}
 
       {/* Auth Modal */}
       <AuthModal
@@ -75,6 +77,9 @@ function App() {
         onSuccess={() => setAuthModalOpen(false)}
         initialMode={authModalMode}
       />
+
+      {/* Password Reset Overlay */}
+      <PasswordResetForm />
     </div>
   );
 }

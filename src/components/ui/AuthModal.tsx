@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { loginSchema, registerSchema, waitlistSchema, formatZodErrors, type ValidationError } from '../../lib/validations';
 import { checkPasswordStrength, type PasswordStrength } from '../../lib/crypto-utils';
 import { authRateLimiter, waitlistRateLimiter } from '../../lib/rate-limit';
-import { registerUser, loginUser, addToWaitlist, type User } from '../../lib/auth-store';
+import { registerUser, loginUser, addToWaitlist, sendPasswordReset, type User } from '../../lib/auth-store';
 
 // Re-export User type for consumers
 export type { User };
@@ -17,7 +17,7 @@ interface Props {
   hideWaitlist?: boolean;
 }
 
-type AuthStep = 'form' | 'processing' | 'success' | 'waitlist-success';
+type AuthStep = 'form' | 'processing' | 'success' | 'waitlist-success' | 'forgot-email' | 'forgot-sent';
 
 export const AuthModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, initialMode = 'signup', hideWaitlist = false }) => {
   const [mode, setMode] = useState<AuthMode>(initialMode);
@@ -205,6 +205,28 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, initial
       setGeneralError('An unexpected error occurred.');
     } finally {
       setLoading(false);
+    }
+  }, [email]);
+
+  // ---- Forgot Password Handler ----
+
+  const handleForgotSendCode = useCallback(async () => {
+    setErrors([]);
+    setGeneralError(null);
+
+    if (!email || !email.includes('@')) {
+      setGeneralError('Please enter a valid email address');
+      return;
+    }
+
+    setLoading(true);
+    const result = await sendPasswordReset(email);
+    setLoading(false);
+
+    if (result.success) {
+      setStep('forgot-sent');
+    } else {
+      setGeneralError(result.error || 'Failed to send reset link');
     }
   }, [email]);
 
@@ -448,6 +470,14 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, initial
 
             {/* Mode Switcher */}
             <div className="mt-6 pt-6 border-t border-slate-100 space-y-2">
+              {mode === 'login' && (
+                <button
+                  onClick={() => { setGeneralError(null); setStep('forgot-email'); }}
+                  className="w-full text-center text-sm font-medium text-slate-400 hover:text-primary transition-colors"
+                >
+                  Forgot your password?
+                </button>
+              )}
               <button
                 onClick={() => switchMode(mode === 'login' ? 'signup' : 'login')}
                 className="w-full text-center text-sm font-medium text-slate-500 hover:text-primary transition-colors"
@@ -598,6 +628,111 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, initial
             >
               Close
             </button>
+          </div>
+        )}
+
+        {/* Forgot Password - Enter Email */}
+        {step === 'forgot-email' && (
+          <div className="p-8">
+            <div className="mb-6 text-center">
+              <div className="bg-amber-500 text-white w-14 h-14 flex items-center justify-center rounded-2xl mx-auto mb-4 shadow-lg shadow-amber-500/30">
+                <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">
+                Reset Password
+              </h2>
+              <p className="text-slate-500 text-sm">
+                Enter your email and we'll send you a reset link
+              </p>
+            </div>
+
+            {generalError && (
+              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm font-medium text-red-600 mb-4" role="alert">
+                {generalError}
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="forgot-email" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                  Email Address
+                </label>
+                <input
+                  id="forgot-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-900 outline-none transition-all focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10"
+                />
+              </div>
+
+              <button
+                onClick={handleForgotSendCode}
+                disabled={loading}
+                className="w-full bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-amber-500/25 transition-all flex items-center justify-center gap-2"
+              >
+                {loading && (
+                  <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+                    <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" className="opacity-75" />
+                  </svg>
+                )}
+                Send Reset Link
+              </button>
+            </div>
+
+            <div className="mt-6 pt-6 border-t border-slate-100">
+              <button
+                onClick={() => { setGeneralError(null); setStep('form'); setMode('login'); }}
+                className="w-full text-center text-sm font-medium text-slate-500 hover:text-primary transition-colors"
+              >
+                Back to Sign In
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Forgot Password - Email Sent */}
+        {step === 'forgot-sent' && (
+          <div className="p-8">
+            <div className="mb-6 text-center">
+              <div className="bg-amber-500 text-white w-14 h-14 flex items-center justify-center rounded-2xl mx-auto mb-4 shadow-lg shadow-amber-500/30">
+                <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">
+                Check Your Email
+              </h2>
+              <p className="text-slate-500 text-sm">
+                We sent a password reset link to <span className="font-semibold text-slate-700">{email}</span>
+              </p>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-700 mb-6">
+              <p className="font-medium mb-1">Didn't receive the email?</p>
+              <p className="text-amber-600 text-xs">Check your spam folder, or make sure the email address is correct.</p>
+            </div>
+
+            <div className="space-y-2">
+              <button
+                onClick={handleForgotSendCode}
+                disabled={loading}
+                className="w-full bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white py-3 rounded-xl font-bold text-sm transition-all"
+              >
+                {loading ? 'Sending...' : 'Resend Link'}
+              </button>
+              <button
+                onClick={() => { setGeneralError(null); setStep('form'); setMode('login'); }}
+                className="w-full text-center text-sm font-medium text-slate-500 hover:text-primary transition-colors py-2"
+              >
+                Back to Sign In
+              </button>
+            </div>
           </div>
         )}
       </div>

@@ -9,7 +9,7 @@ import {
 } from '../../components';
 import { Toast } from '../../components/ui/Toast';
 import { DraftSelector } from '../../components/ui/DraftSelector';
-import { type User } from '../../components/ui/AuthModal';
+import { useAuth } from '../../lib/auth-context';
 import { ReportView } from './components/ReportView';
 import type { InvestmentData } from '../../types/investment';
 
@@ -43,10 +43,7 @@ export function XIRRCalculator() {
   const [currentDraftName, setCurrentDraftName] = useState<string | undefined>();
   const [isSaving, setIsSaving] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('roi_calculate_user');
-    return saved ? JSON.parse(saved) : null;
-  });
+  const { user } = useAuth();
   const [showReportView, setShowReportView] = useState(false);
 
   // Pass user ID to isolate drafts per user
@@ -118,8 +115,8 @@ export function XIRRCalculator() {
     setShowReportView(true);
   }, []);
 
-  const handleLoginFromReport = useCallback((u: User) => {
-    setUser(u);
+  const handleLoginFromReport = useCallback(() => {
+    // Auth context auto-updates on login
   }, []);
 
   const displayPrice = idrToDisplay(data.property.totalPrice);

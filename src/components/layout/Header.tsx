@@ -1,31 +1,22 @@
-import { useState, useEffect } from 'react';
-import AuthModal, { type User } from '../ui/AuthModal';
+import { useState } from 'react';
+import AuthModal from '../ui/AuthModal';
+import { useAuth } from '../../lib/auth-context';
+import { logoutUser, sendPasswordReset } from '../../lib/auth-store';
 
 export function Header() {
   const [showAuth, setShowAuth] = useState(false);
-  const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('roi_calculate_user');
-    return saved ? JSON.parse(saved) : null;
-  });
+  const { user } = useAuth();
 
-  // Persist user to localStorage
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem('roi_calculate_user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('roi_calculate_user');
-    }
-  }, [user]);
+  const handleLogout = async () => {
+    await logoutUser();
+  };
 
   return (
     <header className="w-full bg-white border-b border-slate-200">
       <AuthModal
         isOpen={showAuth}
         onClose={() => setShowAuth(false)}
-        onSuccess={(u) => {
-          setUser(u);
-          setShowAuth(false);
-        }}
+        onSuccess={() => setShowAuth(false)}
         hideWaitlist
       />
 
@@ -57,8 +48,22 @@ export function Header() {
                   <span className="text-[10px] text-slate-400">{user.email}</span>
                 </div>
                 <button
-                  onClick={() => setUser(null)}
-                  className="ml-2 text-slate-400 hover:text-red-500 transition-colors"
+                  onClick={async () => {
+                    if (user.email) {
+                      await sendPasswordReset(user.email);
+                      alert('Password reset link sent to your email.');
+                    }
+                  }}
+                  className="ml-2 text-slate-400 hover:text-amber-500 transition-colors"
+                  title="Reset password"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="ml-1 text-slate-400 hover:text-red-500 transition-colors"
                   title="Sign out"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
